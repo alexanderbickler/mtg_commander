@@ -1,0 +1,475 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Rate a Magic: The Gathering Commander deck on the official 1-5 bracket system.">
+<title>Commander Bracket Rater</title><link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Source+Sans+3:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+:root{
+  color-scheme:light;
+  --ground:#EDF0F4; --surface:#FFFFFF; --sunk:#F5F7FA; --ink:#161A22; --muted:#5A6373; --rule:#D5DAE2;
+  --accent:#24477A; --accent-soft:#E2E9F4;
+  --t1:#5F7F4B; --t2:#2F6E9C; --t3:#A7771C; --t4:#B8472A; --t5:#7A2E4F;
+  --ok:#2F7A4A; --ok-bg:#E3F1E8; --warn:#9A6A0E; --warn-bg:#FBF0D9; --bad:#A93A26; --bad-bg:#F9E3DD;
+  --display:"Cinzel", "Trajan Pro", Georgia, serif;
+  --body:"Source Sans 3", "Segoe UI", system-ui, sans-serif;
+  --mono:"JetBrains Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --ground:#11141A; --surface:#191E26; --sunk:#141820; --ink:#E6E9EF; --muted:#98A1B0; --rule:#2B323D;
+    --accent:#93B4E6; --accent-soft:#1F2B3D;
+    --t1:#8DB277; --t2:#6FA8D6; --t3:#DDAA48; --t4:#E77B5C; --t5:#C9709A;
+    --ok:#7CC796; --ok-bg:#17291F; --warn:#E3B45A; --warn-bg:#2C2414; --bad:#EE8B74; --bad-bg:#321B16;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --ground:#11141A; --surface:#191E26; --sunk:#141820; --ink:#E6E9EF; --muted:#98A1B0; --rule:#2B323D;
+  --accent:#93B4E6; --accent-soft:#1F2B3D;
+  --t1:#8DB277; --t2:#6FA8D6; --t3:#DDAA48; --t4:#E77B5C; --t5:#C9709A;
+  --ok:#7CC796; --ok-bg:#17291F; --warn:#E3B45A; --warn-bg:#2C2414; --bad:#EE8B74; --bad-bg:#321B16;
+}
+*{box-sizing:border-box}
+body{margin:0}
+img{max-width:100%}
+[hidden]{display:none!important}
+body{background:var(--ground);color:var(--ink);font:16px/1.5 var(--body)}
+.wrap{max-width:1200px;margin:0 auto;padding-inline:20px;padding-block:28px 56px}
+a{color:var(--accent);text-underline-offset:2px}
+a:focus-visible,button:focus-visible,textarea:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+header{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:12px 24px;margin-bottom:22px}
+h1{font:700 clamp(26px,4vw,36px)/1.1 var(--display);letter-spacing:.02em;margin:0;text-wrap:balance}
+.sub{color:var(--muted);margin:6px 0 0;max-width:62ch}
+.toplinks{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:14px}
+.grid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:20px;align-items:start}
+@media (max-width:900px){.grid{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--rule);border-radius:10px;padding:18px}
+.label{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+.field{display:grid;gap:6px;margin-bottom:14px}
+input[type=text],input[type=url],textarea{width:100%;font:15px/1.45 var(--body);color:var(--ink);background:var(--sunk);border:1px solid var(--rule);border-radius:6px;padding:9px 11px}
+textarea{font:13px/1.5 var(--mono);min-height:340px;resize:vertical}
+.hint{font-size:13px;color:var(--muted);margin:0}
+.urlout{font-size:14px;display:flex;flex-wrap:wrap;gap:4px 12px}
+fieldset{border:0;padding:0;margin:0 0 14px;display:grid;gap:6px}
+legend{padding:0}
+.radio{display:flex;gap:8px;align-items:flex-start;font-size:14px;cursor:pointer}
+.radio input{margin-top:4px}
+.radio small{display:block;color:var(--muted)}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+button{font:600 14px var(--body);border-radius:6px;padding:8px 14px;cursor:pointer;border:1px solid var(--rule);background:var(--surface);color:var(--ink)}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.count{font:500 12px var(--mono);color:var(--muted);margin-left:auto}
+
+/* verdict */
+.verdict{display:grid;grid-template-columns:auto 1fr;gap:6px 20px;align-items:center}
+.numeral{font:700 88px/0.9 var(--display);color:var(--tier);min-width:1ch;text-align:center}
+.vname{font:700 26px/1.15 var(--display);margin:0;color:var(--tier)}
+.vline{margin:4px 0 0;max-width:60ch}
+.ladder{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin:18px 0 6px}
+.rung{border-radius:4px;padding:8px 6px 7px;background:var(--sunk);border:1px solid var(--rule);font-size:12px;text-align:center;color:var(--muted);position:relative}
+.rung b{display:block;font:700 15px var(--display);color:var(--ink)}
+.rung.on{background:var(--tier);border-color:var(--tier);color:var(--surface)}
+.rung.on b{color:var(--surface)}
+.rung.floor::after{content:"rules floor";position:absolute;left:0;right:0;bottom:-18px;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.rung.on.floor::after{content:"rules floor"}
+.deckmeta{font-size:14px;color:var(--muted);margin:24px 0 0;display:flex;flex-wrap:wrap;gap:4px 16px}
+
+h2{font:700 17px/1.3 var(--display);letter-spacing:.03em;margin:26px 0 10px}
+.checks{display:grid;gap:0;border-top:1px solid var(--rule)}
+.check{display:grid;grid-template-columns:auto 1fr auto;gap:4px 12px;align-items:start;padding:10px 0;border-bottom:1px solid var(--rule)}
+.pill{font:700 11px/1 var(--body);letter-spacing:.06em;text-transform:uppercase;padding:5px 8px;border-radius:99px;white-space:nowrap;margin-top:2px}
+.pill.ok{background:var(--ok-bg);color:var(--ok)} .pill.warn{background:var(--warn-bg);color:var(--warn)} .pill.bad{background:var(--bad-bg);color:var(--bad)}
+.check h3{font-size:15px;margin:0}
+.check p{margin:2px 0 0;font-size:14px;color:var(--muted)}
+.check .n{font:500 14px var(--mono);color:var(--ink);padding-top:2px}
+.cards{display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:6px;font-size:14px}
+.cards a{white-space:nowrap}
+.cards .x{color:var(--muted);font-size:12px}
+
+.gauges{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.gauge{background:var(--sunk);border:1px solid var(--rule);border-radius:8px;padding:10px 12px}
+.gauge .k{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.gauge .v{font:500 24px var(--mono);font-variant-numeric:tabular-nums}
+.gauge .bar{height:5px;border-radius:3px;background:var(--rule);margin-top:6px;overflow:hidden}
+.gauge .bar i{display:block;height:100%;background:var(--accent)}
+.gauge .cards{font-size:13px}
+
+.advice{margin:0;padding-left:20px;display:grid;gap:6px;font-size:15px}
+.ref{margin-top:26px}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:680px;font-size:14px}
+th,td{border-bottom:1px solid var(--rule);padding:8px 10px;text-align:left;vertical-align:top}
+thead th{font:700 14px var(--display)}
+thead th span{display:block;font:600 11px var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+tbody th{font-weight:600;color:var(--muted);white-space:nowrap}
+.links{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px 22px;margin-top:10px}
+.links a{font-weight:600}
+.links p{margin:2px 0 0;font-size:13px;color:var(--muted)}
+.foot{font-size:13px;color:var(--muted);margin-top:22px;max-width:80ch}
+@media (max-width:520px){.numeral{font-size:64px}.rung{font-size:10px}.rung b{font-size:13px}}
+@media (prefers-reduced-motion:no-preference){.gauge .bar i{transition:width .4s ease}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Commander Bracket Rater</h1>
+      <p class="sub">Paste a decklist and get a bracket (1–5) based on Wizards' official rules: Game Changers, mass land denial, chained extra turns and two-card combos, plus a read on overall power.</p>
+    </div>
+    <nav class="toplinks" aria-label="Resources">
+      <a href="https://moxfield.com/" target="_blank" rel="noopener">Moxfield ↗</a>
+      <a href="https://scryfall.com/search?q=is%3Agamechanger&order=name" target="_blank" rel="noopener">Game Changers on Scryfall ↗</a>
+      <a href="https://commanderspellbook.com/find-my-combos/" target="_blank" rel="noopener">Commander Spellbook ↗</a>
+    </nav>
+  </header>
+
+  <div class="grid">
+    <section class="panel" aria-label="Deck input">
+      <div class="field">
+        <label class="label" for="deckurl">Deck link (Moxfield, Archidekt)</label>
+        <input type="url" id="deckurl" placeholder="https://moxfield.com/decks/…">
+        <div class="urlout" id="urlout"></div>
+        <p class="hint">This page can't read deck sites directly. On Moxfield, open the deck's <b>More</b> menu → <b>Export</b> → copy the plain-text list, then paste it below.</p>
+      </div>
+      <div class="field">
+        <label class="label" for="commander">Commander(s)</label>
+        <input type="text" id="commander" placeholder="Found automatically if the list has a Commander section">
+      </div>
+      <div class="field">
+        <label class="label" for="deck">Decklist</label>
+        <textarea id="deck" spellcheck="false"></textarea>
+      </div>
+      <fieldset>
+        <legend class="label">How is this deck played?</legend>
+        <label class="radio"><input type="radio" name="intent" id="intent-auto" value="auto" checked><span>Let the cards decide<small>Rate from the list alone.</small></span></label>
+        <label class="radio"><input type="radio" name="intent" id="intent-ex" value="exhibition"><span>Theme first, winning second<small>Allows Bracket 1 (Exhibition) if the rules permit it.</small></span></label>
+        <label class="radio"><input type="radio" name="intent" id="intent-cedh" value="cedh"><span>Tuned for competitive pods<small>Allows Bracket 5 (cEDH) if the list is Bracket 4.</small></span></label>
+      </fieldset>
+      <div class="row">
+        <button class="primary" id="rate">Rate deck</button>
+        <button id="loadsample">Load example deck</button>
+        <button id="clear">Clear</button>
+        <span class="count" id="count"></span>
+      </div>
+    </section>
+
+    <section class="panel" id="result" aria-live="polite"></section>
+  </div>
+
+  <section class="ref">
+    <h2>The five brackets</h2>
+    <div class="tablewrap panel" style="padding:4px 8px">
+      <table>
+        <thead><tr><th></th>
+          <th style="color:var(--t1)">1 · Exhibition<span>Theme over power</span></th>
+          <th style="color:var(--t2)">2 · Core<span>Precon-level</span></th>
+          <th style="color:var(--t3)">3 · Upgraded<span>Tuned, strong synergy</span></th>
+          <th style="color:var(--t4)">4 · Optimized<span>High power, anything goes</span></th>
+          <th style="color:var(--t5)">5 · cEDH<span>Tournament meta</span></th></tr></thead>
+        <tbody>
+          <tr><th>Game Changers</th><td>None</td><td>None</td><td>Up to 3</td><td>Any</td><td>Any</td></tr>
+          <tr><th>Mass land denial</th><td>No</td><td>No</td><td>No</td><td>Allowed</td><td>Allowed</td></tr>
+          <tr><th>Extra turns</th><td>Avoid</td><td>Not chained</td><td>Not chained</td><td>Allowed</td><td>Allowed</td></tr>
+          <tr><th>2-card infinite combos</th><td>No</td><td>No</td><td>Not early game</td><td>Allowed</td><td>Allowed</td></tr>
+          <tr><th>Tutors</th><td colspan="5">No hard limit since the October 2025 update, but many tutors make a deck play above its bracket.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>Where to check your deck</h2>
+    <div class="links">
+      <div><a href="https://magic.wizards.com/en/news/announcements/commander-brackets-beta-update-february-9-2026" target="_blank" rel="noopener">Official bracket update (Feb 2026) ↗</a><p>Wizards' latest changes, including Farewell and Biorhythm joining the Game Changers.</p></div>
+      <div><a href="https://scryfall.com/search?q=is%3Agamechanger&order=name" target="_blank" rel="noopener">Game Changers list ↗</a><p>Scryfall keeps the live official list.</p></div>
+      <div><a href="https://moxfield.com/" target="_blank" rel="noopener">Moxfield ↗</a><p>Build and export decks. Moxfield also shows its own bracket estimate on each deck.</p></div>
+      <div><a href="https://archidekt.com/" target="_blank" rel="noopener">Archidekt ↗</a><p>Another deck builder. Its text export works here too.</p></div>
+      <div><a href="https://commanderspellbook.com/find-my-combos/" target="_blank" rel="noopener">Commander Spellbook: Find My Combos ↗</a><p>Paste your full list to find every combo, including ones this page doesn't know about.</p></div>
+      <div><a href="https://edhrec.com/" target="_blank" rel="noopener">EDHREC ↗</a><p>Common cards and strategies for your commander.</p></div>
+      <div><a href="https://magic.wizards.com/en/banned-restricted-list" target="_blank" rel="noopener">Banned &amp; restricted list ↗</a><p>Check legality. This rater doesn't check bans.</p></div>
+    </div>
+    <p class="foot">How the rating works: the hard rules set the lowest bracket the deck can be in (the <i>rules floor</i>). Tutors, fast mana and free interaction can push the recommendation up one bracket when the power is clearly higher than the rules alone show. The Game Changers list matches the February 2026 update (53 cards). Mass land denial, extra-turn, combo and tutor detection uses built-in lists of well-known cards, so it may miss obscure ones. Always talk it over with your playgroup before the game.</p>
+    <p class="foot">Commander Bracket Rater is unofficial Fan Content permitted under the <a href="https://company.wizards.com/en/legal/fancontentpolicy" target="_blank" rel="noopener">Fan Content Policy</a>. Not approved or endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.</p>
+  </section>
+</div>
+
+<script>
+const SAMPLE = "Commander\n1 Cosmic Spider-Man\n\nDeck\n1 Agent Venom\n1 Amazing Acrobatics\n1 Anti-Venom, Horrifying Healer\n1 Araña, Heart of the Spider\n1 Arcane Signet\n1 Aunt May\n1 Bagel and Schmear\n1 Command Tower\n1 Costume Closet\n1 Daily Bugle Building\n1 Damage Control Crew\n1 Exotic Orchard\n1 Fabled Passage\n5 Forest\n1 Glacial Fortress\n1 Grow Extra Arms\n1 Guy in the Chair\n1 Gwenom, Remorseless\n1 Hinterland Harbor\n3 Island\n1 Kapow!\n1 Mary Jane Watson\n1 Miles Morales // Ultimate Spider-Man\n1 Mystic Monastery\n1 Ominous Asylum\n1 Origin of Spider-Man\n1 Path of Ancestry\n1 Peter Parker // Amazing Spider-Man\n1 Peter Parker's Camera\n5 Plains\n1 Prairie Stream\n1 Radioactive Spider\n1 Razorverge Thicket\n1 Rent Is Due\n1 Romantic Rendezvous\n1 SP//dr, Piloted by Peni\n1 Savage Lands\n1 Savage Mansion\n1 Scarlet Spider, Ben Reilly\n1 Scarlet Spider, Kaine\n1 Scattered Groves\n1 School Daze\n1 Scorched Geyser\n1 Scout the City\n1 Silk, Web Weaver\n1 Skyward Spider\n1 Sol Ring\n1 Spectacular Spider-Man\n1 Spectacular Tactics\n1 Spider-Bot\n1 Spider-Byte, Web Warden\n1 Spider-Gwen, Free Spirit\n1 Spider-Ham, Peter Porker\n1 Spider-Man India\n1 Spider-Man No More\n1 Spider-Man Noir\n1 Spider-Man, Brooklyn Visionary\n1 Spider-Man, Miles Morales\n1 Spider-Man, To the Rescue\n1 Spider-Man, Web-Slinger\n1 Spider-Punk\n1 Spider-Rex, Daring Dino\n1 Spider-UK\n1 Spider-Verse\n1 Spider-Woman, Secret Agent\n1 Spiders-Man, Heroic Horde\n1 Sudden Strike\n1 Sun-Spider, Nimble Webber\n1 Sunpetal Grove\n1 Superior Spider-Man\n2 Swamp\n1 Syncopate\n1 Terramorphic Expanse\n1 The Clone Saga\n1 The Death of Gwen Stacy\n1 Thriving Bluff\n1 Thriving Heath\n1 Thriving Isle\n1 Thriving Moor\n1 Thwip!\n1 University Campus\n1 Villainous Wrath\n1 Web Up\n1 Web-Warriors\n1 Whoosh!\n1 Wisecrack\n1 With Great Power . . .\n1 Wraith, Vicious Vigilante";
+const SAMPLE_URL = "https://moxfield.com/decks/nDJpUUSxvkiU_IkOGDmqvA";
+
+const GAME_CHANGERS = ["Ad Nauseam","Ancient Tomb","Aura Shards","Biorhythm","Bolas's Citadel","Braids, Cabal Minion","Chrome Mox","Coalition Victory","Consecrated Sphinx","Crop Rotation","Cyclonic Rift","Demonic Tutor","Drannith Magistrate","Enlightened Tutor","Farewell","Field of the Dead","Fierce Guardianship","Force of Will","Gaea's Cradle","Gamble","Gifts Ungiven","Glacial Chasm","Grand Arbiter Augustin IV","Grim Monolith","Humility","Imperial Seal","Intuition","Jeska's Will","Lion's Eye Diamond","Mana Vault","Mishra's Workshop","Mox Diamond","Mystical Tutor","Narset, Parter of Veils","Natural Order","Necropotence","Notion Thief","Opposition Agent","Orcish Bowmasters","Panoptic Mirror","Rhystic Study","Seedborn Muse","Serra's Sanctum","Smothering Tithe","Survival of the Fittest","Teferi's Protection","Tergrid, God of Fright","Thassa's Oracle","The One Ring","The Tabernacle at Pendrell Vale","Underworld Breach","Vampiric Tutor","Worldly Tutor"];
+
+const MLD = ["Armageddon","Ravages of War","Catastrophe","Jokulhaups","Obliterate","Decree of Annihilation","Ruination","Wildfire","Destructive Force","Sunder","Boom // Bust","Winter Orb","Static Orb","Rising Waters","Hokori, Dust Drinker","Blood Moon","Magus of the Moon","Back to Basics","Epicenter","Global Ruin","Impending Disaster","Keldon Firebombers","Tectonic Break","Thoughts of Ruin","Apocalypse","Cataclysm","Myojin of Infinite Rage","Devastation","Burning of Xinye","Contamination","Infernal Darkness","Stasis","Tangle Wire","Worldpurge","Upheaval","Fall of the Thran","Mana Vortex","Acid Rain","Worldfire","Numot, the Devastator"];
+
+const EXTRA_TURNS = ["Time Warp","Temporal Manipulation","Capture of Jingzhou","Walk the Aeons","Time Stretch","Temporal Mastery","Nexus of Fate","Karn's Temporal Sundering","Alrund's Epiphany","Temporal Trespass","Beacon of Tomorrows","Savor the Moment","Part the Waterveil","Expropriate","Temporal Extortion","Time Sieve","Magistrate's Scepter","Sage of Hours","Medomai the Ageless","Lighthouse Chronologist","Wanderwine Prophets","Notorious Throng","Warrior's Oath","Last Chance","Final Fortune","Seize the Day","Timestream Navigator","Rise of the Eldrazi","Stitch in Time","Chance for Glory","Plea for Power","Ugin's Nexus","Time Walk"];
+const TURN_ENGINES = ["Sage of Hours","Medomai the Ageless","Magistrate's Scepter","Time Sieve","Wanderwine Prophets","Lighthouse Chronologist","Nexus of Fate","Timestream Navigator"];
+const RECURSION = ["Archaeomancer","Mnemonic Wall","Ghostly Flicker","Regrowth","Mizzix's Mastery","Snapcaster Mage","Mission Briefing","Eternal Witness","Scholar of the Lost Trove","Reiterate","Twincast","Displacer Kitten","Mystic Sanctuary","Kess, Dissident Mage","Narset's Reversal","Dreadhorde Arcanist"];
+
+const TUTORS = ["Demonic Tutor","Vampiric Tutor","Imperial Seal","Enlightened Tutor","Mystical Tutor","Worldly Tutor","Gamble","Diabolic Tutor","Diabolic Intent","Grim Tutor","Beseech the Mirror","Cruel Tutor","Wishclaw Talisman","Scheming Symmetry","Personal Tutor","Idyllic Tutor","Sterling Grove","Green Sun's Zenith","Chord of Calling","Finale of Devastation","Natural Order","Eldritch Evolution","Neoform","Survival of the Fittest","Fauna Shaman","Eladamri's Call","Summoner's Pact","Merchant Scroll","Muddle the Mixture","Fabricate","Whir of Invention","Tribute Mage","Trophy Mage","Trinket Mage","Entomb","Buried Alive","Intuition","Gifts Ungiven","Mastermind's Acquisition","Increasing Ambition","Dark Petition","Demonic Collusion","Profane Tutor","Solve the Equation","Steelshaper's Gift","Stoneforge Mystic","Recruiter of the Guard","Ranger-Captain of Eos","Goblin Matron","Imperial Recruiter","Congregation at Dawn","Diabolic Revelation","Birthing Pod","Tooth and Nail","Crop Rotation","Sidisi, Undead Vizier","Razaketh, the Foulblooded","Spellseeker","Shared Summons","Demonic Consultation","Lim-Dûl's Vault","Insidious Dreams","Rune-Scarred Demon","Final Parting","Academy Rector","Arena Rector","Three Dreams","Long-Term Plans","Citanul Flute","Pattern of Rebirth","Defense of the Heart","Open the Armory","Plea for Guidance","Signal the Clans","Moggcatcher","Chord of Calling","Invasion of Ikoria","Tainted Pact","Behold the Multitude","Wishclaw Talisman","Ranger of Eos"];
+
+const FAST_MANA = ["Mana Vault","Grim Monolith","Chrome Mox","Mox Diamond","Mox Opal","Mox Amber","Lion's Eye Diamond","Lotus Petal","Ancient Tomb","Dark Ritual","Cabal Ritual","Simian Spirit Guide","Elvish Spirit Guide","Carpet of Flowers","Culling the Weak","Rite of Flame","Gemstone Caverns","Mishra's Workshop","Gaea's Cradle","Serra's Sanctum","Springleaf Drum","Mana Crypt","Jeweled Lotus","Mox Tantalite","Basalt Monolith","Mana Geyser","Channel the Suns","Sol Ring"];
+
+const FREE_INTERACTION = ["Force of Will","Fierce Guardianship","Deflecting Swat","Force of Negation","Pact of Negation","Mental Misstep","Mindbreak Trap","Deadly Rollick","Snuff Out","Misdirection","Commandeer","Foil","Daze","Subtlety","Solitude","Endurance","Grief","Fury","Mana Drain","Swan Song","Flusterstorm","An Offer You Can't Refuse","Silence","Orim's Chant","Veil of Summer","Dispel","Spell Pierce","Pyroblast","Red Elemental Blast","Gut Shot","Mogg Salvage","Sickening Shoal","Thwart"];
+
+// [pieceA, pieceB, effective total cost to assemble, what it does]
+const COMBOS = [
+  ["Thassa's Oracle","Demonic Consultation",3,"Wins the game"],
+  ["Thassa's Oracle","Tainted Pact",4,"Wins the game"],
+  ["Laboratory Maniac","Demonic Consultation",4,"Wins the game"],
+  ["Laboratory Maniac","Tainted Pact",5,"Wins the game"],
+  ["Jace, Wielder of Mysteries","Demonic Consultation",5,"Wins the game"],
+  ["Jace, Wielder of Mysteries","Tainted Pact",6,"Wins the game"],
+  ["Isochron Scepter","Dramatic Reversal",4,"Infinite mana with rocks"],
+  ["Kiki-Jiki, Mirror Breaker","Zealous Conscripts",10,"Infinite hasty tokens"],
+  ["Kiki-Jiki, Mirror Breaker","Pestermite",8,"Infinite hasty tokens"],
+  ["Kiki-Jiki, Mirror Breaker","Deceiver Exarch",8,"Infinite hasty tokens"],
+  ["Kiki-Jiki, Mirror Breaker","Felidar Guardian",9,"Infinite hasty tokens"],
+  ["Kiki-Jiki, Mirror Breaker","Restoration Angel",9,"Infinite hasty tokens"],
+  ["Kiki-Jiki, Mirror Breaker","Village Bell-Ringer",8,"Infinite hasty tokens"],
+  ["Kiki-Jiki, Mirror Breaker","Combat Celebrant",8,"Infinite combat phases"],
+  ["Splinter Twin","Pestermite",7,"Infinite hasty tokens"],
+  ["Splinter Twin","Deceiver Exarch",7,"Infinite hasty tokens"],
+  ["Heliod, Sun-Crowned","Walking Ballista",6,"Infinite damage"],
+  ["Mikaeus, the Unhallowed","Triskelion",10,"Infinite damage"],
+  ["Exquisite Blood","Sanguine Bond",10,"Infinite life drain"],
+  ["Exquisite Blood","Vito, Thorn of the Dusk Rose",8,"Infinite life drain"],
+  ["Exquisite Blood","Marauding Blight-Priest",8,"Infinite life drain"],
+  ["Niv-Mizzet, Parun","Curiosity",7,"Infinite damage and draw"],
+  ["Niv-Mizzet, Parun","Ophidian Eye",9,"Infinite damage and draw"],
+  ["Niv-Mizzet, Parun","Tandem Lookout",9,"Infinite damage and draw"],
+  ["Niv-Mizzet, the Firemind","Curiosity",5,"Infinite damage and draw"],
+  ["Basalt Monolith","Rings of Brighthearth",6,"Infinite colorless mana"],
+  ["Basalt Monolith","Power Artifact",5,"Infinite colorless mana"],
+  ["Grim Monolith","Power Artifact",4,"Infinite colorless mana"],
+  ["Kinnan, Bonder Prodigy","Basalt Monolith",5,"Infinite colorless mana"],
+  ["Dualcaster Mage","Twinflame",5,"Infinite hasty tokens"],
+  ["Dualcaster Mage","Heat Shimmer",6,"Infinite hasty tokens"],
+  ["Saheeli Rai","Felidar Guardian",7,"Infinite hasty tokens"],
+  ["Devoted Druid","Vizier of Remedies",5,"Infinite green mana"],
+  ["Painter's Servant","Grindstone",6,"Mills a whole library"],
+  ["Worldgorger Dragon","Animate Dead",3,"Infinite mana / ETBs"],
+  ["Worldgorger Dragon","Necromancy",4,"Infinite mana / ETBs"],
+  ["Worldgorger Dragon","Dance of the Dead",3,"Infinite mana / ETBs"],
+  ["Food Chain","Squee, the Immortal",6,"Infinite creature mana"],
+  ["Food Chain","Eternal Scourge",6,"Infinite creature mana"],
+  ["Food Chain","Misthollow Griffin",7,"Infinite creature mana"],
+  ["Sword of the Meek","Thopter Foundry",4,"Infinite tokens and life"],
+  ["Peregrine Drake","Deadeye Navigator",11,"Infinite mana"],
+  ["Palinchron","Deadeye Navigator",13,"Infinite mana"],
+  ["Earthcraft","Squirrel Nest",4,"Infinite squirrels"],
+  ["Bloom Tender","Freed from the Real",5,"Infinite mana"],
+  ["Grand Architect","Pili-Pala",5,"Infinite mana"],
+  ["Aggravated Assault","Sword of Feast and Famine",6,"Infinite combats"],
+  ["Godo, Bandit Warlord","Helm of the Host",11,"Infinite combats"]
+];
+
+const TIERS = {
+  1:{name:"Exhibition", color:"var(--t1)", line:"Theme first. Plays well with other casual, thematic decks."},
+  2:{name:"Core", color:"var(--t2)", line:"About the strength of a current preconstructed deck. Games are fair and interactive."},
+  3:{name:"Upgraded", color:"var(--t3)", line:"Tuned beyond a precon, with strong synergy and a few powerful cards."},
+  4:{name:"Optimized", color:"var(--t4)", line:"High power with no restrictions. Expect fast, lethal games."},
+  5:{name:"cEDH", color:"var(--t5)", line:"Built to win against a competitive tournament meta."}
+};
+
+/* ---------- helpers ---------- */
+const norm = s => s.normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/[^a-z0-9]/g,"");
+const faceKeys = n => { const k=[norm(n)]; if (n.includes("/")) k.push(norm(n.split("/")[0])); return k; };
+const mapOf = arr => { const m=new Map(); arr.forEach(n=>faceKeys(n).forEach(k=>m.set(k,n))); return m; };
+const esc = s => String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const slug = n => n.split(" // ")[0].normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/['’,.!]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
+const scry = n => "https://scryfall.com/search?q=" + encodeURIComponent('!"' + n + '"');
+const cardLink = n => `<a href="${scry(n)}" target="_blank" rel="noopener" title="View on Scryfall">${esc(n)}</a>`;
+const cardList = names => names.length ? `<div class="cards">${names.map(cardLink).join("")}</div>` : "";
+const spellbook = (a,b) => "https://commanderspellbook.com/search/?q=" + encodeURIComponent(`card:"${a}" card:"${b}"`);
+
+const M = { gc:mapOf(GAME_CHANGERS), mld:mapOf(MLD), et:mapOf(EXTRA_TURNS), eng:mapOf(TURN_ENGINES), rec:mapOf(RECURSION), tut:mapOf(TUTORS), fast:mapOf(FAST_MANA), free:mapOf(FREE_INTERACTION) };
+
+/* ---------- parsing ---------- */
+function parseDeck(text){
+  const cards=[]; const commanders=[]; let section="";
+  const skip = /^(sideboard|maybeboard|maybe|considering|tokens?|attractions|stickers)$/;
+  for (const raw of text.split(/\r?\n/)){
+    let l = raw.trim();
+    if (!l) continue;
+    const head = l.replace(/^[\/#\s]+/,"").replace(/[:\s]*(\(\d+\))?\s*$/,"").toLowerCase();
+    if (/^(\/\/|#)/.test(l) || /^(commanders?|companions?|sideboard|maybeboard|maybe|considering|deck|mainboard|main|tokens?|attractions|stickers|lands?|creatures?|instants?|sorcery|sorceries|artifacts?|enchantments?|planeswalkers?|battles?|other)\s*:?\s*(\(\d+\))?$/i.test(l)){
+      section = head; continue;
+    }
+    const cmdLine = l.match(/^commanders?\s*:\s*(.+)$/i);
+    if (cmdLine){ commanders.push(cleanName(cmdLine[1])); continue; }
+    if (skip.test(section)) continue;
+    const m = l.match(/^(\d+)\s*x?\s+(.+)$/i);
+    const qty = m ? parseInt(m[1],10) : 1;
+    const isCmd = /\*cmdr\*/i.test(l) || /\[[^\]]*commander[^\]]*\]/i.test(l) || section.startsWith("commander");
+    const name = cleanName(m ? m[2] : l);
+    if (!name) continue;
+    if (isCmd) commanders.push(name);
+    cards.push({name, qty});
+  }
+  return {cards, commanders};
+}
+function cleanName(s){
+  return s.replace(/\[[^\]]*\]/g,"").replace(/\*[A-Za-z]+\*/g,"").replace(/\s+\([^)]*\).*$/,"").replace(/\s+#.*$/,"").replace(/\s+\^.*$/,"").trim();
+}
+
+/* ---------- rating ---------- */
+function rate(text, cmdField, intent){
+  const {cards, commanders:foundCmds} = parseDeck(text);
+  const cmds = [...new Set([...foundCmds, ...cmdField.split(/[,;]| \+ |\n/).map(s=>s.trim()).filter(Boolean)])];
+  const total = cards.reduce((a,c)=>a+c.qty,0) + cmds.filter(c=>!cards.some(x=>norm(x.name)===norm(c))).length;
+  const keyset = new Set(); cards.forEach(c=>faceKeys(c.name).forEach(k=>keyset.add(k))); cmds.forEach(c=>faceKeys(c).forEach(k=>keyset.add(k)));
+  const find = map => { const out=new Set(); keyset.forEach(k=>{ if (map.has(k)) out.add(map.get(k)); }); return [...out].sort(); };
+
+  const gc=find(M.gc), mld=find(M.mld), et=find(M.et), eng=find(M.eng), rec=find(M.rec), tut=find(M.tut), fast=find(M.fast).filter(n=>n!=="Sol Ring"), free=find(M.free);
+  const has = n => keyset.has(norm(n));
+  const cmdKeys = new Set(cmds.map(norm));
+  const combos = COMBOS.filter(([a,b])=>has(a)&&has(b)).map(([a,b,cost,what])=>{
+    const withCmd = cmdKeys.has(norm(a)) || cmdKeys.has(norm(b));
+    const early = cost <= (withCmd ? 8 : 7);
+    return {a,b,cost,what,early,withCmd};
+  });
+  const chaining = eng.length>0 || et.length>=3 || (et.length>=2 && rec.length>0);
+
+  const checks=[]; let floor=1;
+  const bump = b => { if (b>floor) floor=b; };
+
+  // Game Changers
+  if (gc.length===0) checks.push({s:"ok",t:"No Game Changers",p:"Fits every bracket.",n:"0"});
+  else if (gc.length<=3){ bump(3); checks.push({s:"warn",t:"Game Changers",p:"Brackets 1–2 allow none; Bracket 3 allows up to 3.",n:gc.length+" / 3",cards:gc}); }
+  else { bump(4); checks.push({s:"bad",t:"Game Changers",p:"More than 3 puts the deck in Bracket 4 or higher.",n:gc.length+" / 3",cards:gc}); }
+
+  // MLD
+  if (mld.length){ bump(4); checks.push({s:"bad",t:"Mass land denial",p:"Only allowed in Brackets 4–5.",n:mld.length,cards:mld}); }
+  else checks.push({s:"ok",t:"No mass land denial",p:"Nothing that destroys, locks or strips multiple lands.",n:"0"});
+
+  // Extra turns
+  if (!et.length) checks.push({s:"ok",t:"No extra turns",p:"No extra-turn cards found.",n:"0"});
+  else if (chaining){ bump(4); checks.push({s:"bad",t:"Chained extra turns",p:(eng.length?"Repeatable extra-turn engine":"Several extra-turn cards"+(rec.length?" plus ways to recast them":""))+". Chaining turns is Bracket 4+.",n:et.length,cards:[...et,...rec]}); }
+  else { bump(2); checks.push({s:"warn",t:"Extra turns (not chained)",p:"Fine in Brackets 2–3 as long as they aren't looped. Bracket 1 decks should avoid them.",n:et.length,cards:et}); }
+
+  // Combos
+  if (!combos.length) checks.push({s:"ok",t:"No known two-card combos",p:`None from the built-in list. <a href="https://commanderspellbook.com/find-my-combos/" target="_blank" rel="noopener">Check the full list on Commander Spellbook ↗</a>`,n:"0"});
+  else {
+    const early = combos.some(c=>c.early);
+    bump(early?4:3);
+    checks.push({s:early?"bad":"warn",t:early?"Early-game two-card combo":"Late-game two-card combo",
+      p:early?"Cheap enough to assemble in the first few turns. That is Bracket 4+.":"Brackets 1–2 allow none. Bracket 3 allows them only late in the game.",
+      n:combos.length, combos});
+  }
+
+  // power signals
+  const power = tut.length*1 + fast.length*1.25 + free.length*1 + gc.length*0.75;
+  const cedhSignals = [fast.length>=5, tut.length>=6, free.length>=4, combos.some(c=>c.early)].filter(Boolean).length;
+
+  let rec_b = floor; const notes=[];
+  if (floor<=2){
+    if (tut.length>=4 || fast.length>=3 || free.length>=3 || power>=6){ rec_b=3; notes.push("No rule forces Bracket 3, but the tutors, fast mana or free spells make it play above a precon."); }
+    else if (intent==="exhibition" && floor===1){ rec_b=1; }
+    else if (intent==="exhibition" && floor===2){ rec_b=2; notes.push("Bracket 1 decks should avoid extra turns entirely; cut them to play at Exhibition."); }
+    else rec_b=2;
+  }
+  if (floor===4){
+    if (intent==="cedh") { rec_b=5; notes.push("Marked as tuned for competitive pods. Bracket 5 is about intent and metagame, not just card choices."); }
+    else if (cedhSignals>=3) notes.push("The list has several cEDH hallmarks (fast mana, dense tutors, free interaction, cheap combos). If you tune it for a competitive meta, call it Bracket 5.");
+  }
+  if (intent==="cedh" && floor<4) notes.push("Bracket 5 needs a Bracket 4-legal list built for a competitive meta. By its cards, this deck isn't there yet.");
+  if (intent==="exhibition" && floor>=3) notes.push("You chose theme first, but the rules below keep the deck out of Bracket 1.");
+
+  // how to go down
+  const down=[];
+  if (rec_b===3 && floor<=2) down.push("Cut some tutors, fast mana or free spells to play at Bracket 2.");
+  if (gc.length>3) down.push(`Cut ${gc.length-3} Game Changer${gc.length-3>1?"s":""} to reach Bracket 3, or all ${gc.length} for Bracket 2.`);
+  else if (gc.length>0) down.push(`Cut ${gc.length===1?"the Game Changer":"all "+gc.length+" Game Changers"} to reach Bracket 2.`);
+  if (mld.length) down.push(`Remove mass land denial: ${mld.map(esc).join(", ")}.`);
+  if (chaining) down.push("Trim extra-turn cards (and the ways to recast them) so turns can't be chained.");
+  combos.forEach(c=>down.push(`Break up ${esc(c.a)} + ${esc(c.b)} by cutting one piece${c.withCmd?" (the other is your commander)":""}.`));
+
+  return {cards,cmds,total,gc,mld,et,rec,tut,fast,free,combos,checks,floor,rec_b,notes,down,power,cedhSignals};
+}
+
+/* ---------- render ---------- */
+function render(r){
+  const el = document.getElementById("result");
+  if (!r.cards.length){ el.innerHTML = `<p class="label">No deck yet</p><p>Paste a decklist on the left, or load the example deck, then choose <b>Rate deck</b>.</p>`; el.style.removeProperty("--tier"); return; }
+  const T = TIERS[r.rec_b];
+  el.style.setProperty("--tier", T.color);
+  const cmdLinks = r.cmds.map(c=>`${cardLink(c)} <a class="x" href="https://edhrec.com/commanders/${slug(c)}" target="_blank" rel="noopener">EDHREC ↗</a>`).join(" · ");
+  const deckUrl = document.getElementById("deckurl").value.trim();
+  const gauge = (k,list,max) => `<div class="gauge"><div class="k">${k}</div><div class="v">${list.length}</div><div class="bar"><i style="width:${Math.min(100,list.length/max*100)}%"></i></div>${cardList(list)}</div>`;
+
+  el.innerHTML = `
+    <div class="verdict">
+      <div class="numeral" aria-hidden="true">${r.rec_b}</div>
+      <div>
+        <p class="label">Recommended bracket</p>
+        <p class="vname">Bracket ${r.rec_b} · ${T.name}</p>
+        <p class="vline">${T.line}</p>
+      </div>
+    </div>
+    <div class="ladder" role="img" aria-label="Bracket ${r.rec_b} of 5; rules floor is Bracket ${r.floor}">
+      ${[1,2,3,4,5].map(b=>`<div class="rung${b===r.rec_b?" on":""}${b===r.floor&&r.floor!==r.rec_b?" floor":""}"><b>${b}</b>${TIERS[b].name}</div>`).join("")}
+    </div>
+    <div class="deckmeta">
+      <span>${r.cmds.length?"Commander: "+cmdLinks:"No commander found. Add one above."}</span>
+      <span>${r.total} cards${r.total!==100?` <span style="color:var(--warn)">(Commander decks are 100)</span>`:""}</span>
+      ${deckUrl?`<span><a href="${esc(deckUrl)}" target="_blank" rel="noopener">Open deck ↗</a></span>`:""}
+    </div>
+    ${r.notes.length?`<h2>Notes</h2><ul class="advice">${r.notes.map(n=>`<li>${n}</li>`).join("")}</ul>`:""}
+    <h2>Bracket rules</h2>
+    <div class="checks">
+      ${r.checks.map(c=>`<div class="check">
+        <span class="pill ${c.s}">${c.s==="ok"?"Clear":c.s==="warn"?"Limited":"Bracket 4+"}</span>
+        <div><h3>${c.t}</h3><p>${c.p}</p>${c.cards?cardList(c.cards):""}
+          ${c.combos?`<div class="cards">${c.combos.map(k=>`<span>${cardLink(k.a)} + ${cardLink(k.b)} <span class="x">${esc(k.what)} · ${k.early?"early":"late"}</span> <a class="x" href="${spellbook(k.a,k.b)}" target="_blank" rel="noopener">Spellbook ↗</a></span>`).join("")}</div>`:""}
+        </div>
+        <span class="n">${c.n}</span></div>`).join("")}
+    </div>
+    <h2>Power signals</h2>
+    <div class="gauges">
+      ${gauge("Tutors",r.tut,8)}
+      ${gauge("Fast mana",r.fast,8)}
+      ${gauge("Free / cheap interaction",r.free,8)}
+    </div>
+    <p class="hint" style="margin-top:8px">Sol Ring isn't counted as fast mana because nearly every deck runs it.</p>
+    ${r.down.length?`<h2>To play at a lower bracket</h2><ul class="advice">${r.down.map(d=>`<li>${d}</li>`).join("")}</ul>`:""}
+  `;
+}
+
+/* ---------- wiring ---------- */
+const $ = id => document.getElementById(id);
+function intent(){ return document.querySelector('input[name="intent"]:checked').value; }
+function run(){ const r = rate($("deck").value, $("commander").value, intent()); render(r); $("count").textContent = r.cards.length ? r.total+" cards" : ""; save(); }
+function showUrl(){
+  const u = $("deckurl").value.trim(); const out=$("urlout");
+  if (!/^https?:\/\//i.test(u)){ out.innerHTML=""; return; }
+  const mox = u.match(/moxfield\.com\/decks\/([\w-]+)/i);
+  out.innerHTML = `<a href="${esc(u)}" target="_blank" rel="noopener">Open deck ↗</a>` + (mox?`<a href="https://moxfield.com/decks/${esc(mox[1])}/primer" target="_blank" rel="noopener">Primer ↗</a>`:"");
+}
+function save(){ try{ localStorage.setItem("cbr-draft", JSON.stringify({deck:$("deck").value, cmd:$("commander").value, url:$("deckurl").value, intent:intent()})); }catch(e){} }
+function loadSample(){ $("deck").value=SAMPLE; $("commander").value=""; $("deckurl").value=SAMPLE_URL; $("intent-auto").checked=true; showUrl(); run(); }
+
+$("rate").addEventListener("click", run);
+$("loadsample").addEventListener("click", loadSample);
+$("clear").addEventListener("click", ()=>{ $("deck").value=""; $("commander").value=""; $("deckurl").value=""; showUrl(); run(); });
+document.querySelectorAll('input[name="intent"]').forEach(i=>i.addEventListener("change", run));
+$("deckurl").addEventListener("input", ()=>{ showUrl(); save(); });
+let t; $("deck").addEventListener("input", ()=>{ clearTimeout(t); t=setTimeout(run, 350); });
+$("commander").addEventListener("input", ()=>{ clearTimeout(t); t=setTimeout(run, 350); });
+
+(function init(){
+  let d=null; try{ d=JSON.parse(localStorage.getItem("cbr-draft")||"null"); }catch(e){}
+  if (d && d.deck && d.deck.trim()){
+    $("deck").value=d.deck; $("commander").value=d.cmd||""; $("deckurl").value=d.url||"";
+    const r=document.querySelector(`input[name="intent"][value="${d.intent}"]`); if (r) r.checked=true;
+    showUrl(); run();
+  } else loadSample();
+})();
+</script>
+
+</body>
+</html>
