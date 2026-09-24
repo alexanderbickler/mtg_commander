@@ -2,7 +2,7 @@
 
 Paste a Magic: The Gathering Commander decklist and get a recommended bracket (1–5) based on Wizards of the Coast's official Commander Bracket system.
 
-**Live site:** https://YOUR-USERNAME.github.io/commander-bracket-rater/
+**Live site:** https://alexanderbickler.github.io/commander-bracket-rater/
 
 ## What it checks
 
