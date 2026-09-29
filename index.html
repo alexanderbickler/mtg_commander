@@ -140,7 +140,7 @@ tbody th{font-weight:600;color:var(--muted);white-space:nowrap}
       </div>
       <div class="field">
         <label class="label" for="commander">Commander(s)</label>
-        <input type="text" id="commander" placeholder="Found automatically if the list has a Commander section">
+        <input type="text" id="commander" placeholder="Name only, no quantity. Found automatically if the list has a Commander section">
       </div>
       <div class="field">
         <label class="label" for="deck">Decklist</label>
@@ -313,6 +313,9 @@ function parseDeck(text){
   }
   return {cards, commanders};
 }
+// Commander field: a name only. Drop a leading quantity like "1 " or "1x " if one was pasted in.
+// Only 1-2 digit counts are removed, so a card whose name starts with a year (e.g. "1996 World Champion") stays intact.
+function cleanCmd(s){ return cleanName(s.trim().replace(/^\d{1,2}\s*x?\s+(?=\S)/i, "")); }
 function cleanName(s){
   return s.replace(/\[[^\]]*\]/g,"").replace(/\*[A-Za-z]+\*/g,"").replace(/\s+\([^)]*\).*$/,"").replace(/\s+#.*$/,"").replace(/\s+\^.*$/,"").trim();
 }
@@ -320,7 +323,8 @@ function cleanName(s){
 /* ---------- rating ---------- */
 function rate(text, cmdField, intent){
   const {cards, commanders:foundCmds} = parseDeck(text);
-  const cmds = [...new Set([...foundCmds, ...cmdField.split(/[,;]| \+ |\n/).map(s=>s.trim()).filter(Boolean)])];
+  const typed = cmdField.split(/[,;]| \+ |\n/).map(cleanCmd).filter(Boolean);
+  const seen = new Set(); const cmds = [...foundCmds, ...typed].filter(c=>{ const k=norm(c); if (!k || seen.has(k)) return false; seen.add(k); return true; });
   const total = cards.reduce((a,c)=>a+c.qty,0) + cmds.filter(c=>!cards.some(x=>norm(x.name)===norm(c))).length;
   const keyset = new Set(); cards.forEach(c=>faceKeys(c.name).forEach(k=>keyset.add(k))); cmds.forEach(c=>faceKeys(c).forEach(k=>keyset.add(k)));
   const find = map => { const out=new Set(); keyset.forEach(k=>{ if (map.has(k)) out.add(map.get(k)); }); return [...out].sort(); };
@@ -443,31 +447,27 @@ function render(r){
 /* ---------- wiring ---------- */
 const $ = id => document.getElementById(id);
 function intent(){ return document.querySelector('input[name="intent"]:checked').value; }
-function run(){ const r = rate($("deck").value, $("commander").value, intent()); render(r); $("count").textContent = r.cards.length ? r.total+" cards" : ""; save(); }
+function run(){ const r = rate($("deck").value, $("commander").value, intent()); render(r); $("count").textContent = r.cards.length ? r.total+" cards" : ""; }
 function showUrl(){
   const u = $("deckurl").value.trim(); const out=$("urlout");
   if (!/^https?:\/\//i.test(u)){ out.innerHTML=""; return; }
   const mox = u.match(/moxfield\.com\/decks\/([\w-]+)/i);
   out.innerHTML = `<a href="${esc(u)}" target="_blank" rel="noopener">Open deck ↗</a>` + (mox?`<a href="https://moxfield.com/decks/${esc(mox[1])}/primer" target="_blank" rel="noopener">Primer ↗</a>`:"");
 }
-function save(){ try{ localStorage.setItem("cbr-draft", JSON.stringify({deck:$("deck").value, cmd:$("commander").value, url:$("deckurl").value, intent:intent()})); }catch(e){} }
 function loadSample(){ $("deck").value=SAMPLE; $("commander").value=""; $("deckurl").value=SAMPLE_URL; $("intent-auto").checked=true; showUrl(); run(); }
 
 $("rate").addEventListener("click", run);
 $("loadsample").addEventListener("click", loadSample);
 $("clear").addEventListener("click", ()=>{ $("deck").value=""; $("commander").value=""; $("deckurl").value=""; showUrl(); run(); });
 document.querySelectorAll('input[name="intent"]').forEach(i=>i.addEventListener("change", run));
-$("deckurl").addEventListener("input", ()=>{ showUrl(); save(); });
+$("deckurl").addEventListener("input", showUrl);
 let t; $("deck").addEventListener("input", ()=>{ clearTimeout(t); t=setTimeout(run, 350); });
 $("commander").addEventListener("input", ()=>{ clearTimeout(t); t=setTimeout(run, 350); });
 
 (function init(){
-  let d=null; try{ d=JSON.parse(localStorage.getItem("cbr-draft")||"null"); }catch(e){}
-  if (d && d.deck && d.deck.trim()){
-    $("deck").value=d.deck; $("commander").value=d.cmd||""; $("deckurl").value=d.url||"";
-    const r=document.querySelector(`input[name="intent"][value="${d.intent}"]`); if (r) r.checked=true;
-    showUrl(); run();
-  } else loadSample();
+  // Start fresh on every visit. Remove any draft saved by earlier versions of this page.
+  try{ localStorage.removeItem("cbr-draft"); }catch(e){}
+  loadSample();
 })();
 </script>
 
