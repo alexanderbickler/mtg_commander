@@ -467,7 +467,7 @@ $("commander").addEventListener("input", ()=>{ clearTimeout(t); t=setTimeout(run
 (function init(){
   // Start fresh on every visit. Remove any draft saved by earlier versions of this page.
   try{ localStorage.removeItem("cbr-draft"); }catch(e){}
-  loadSample();
+  run();
 })();
 </script>
 
