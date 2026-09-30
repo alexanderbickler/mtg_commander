@@ -104,15 +104,22 @@ h2{font:700 17px/1.3 var(--display);letter-spacing:.03em;margin:26px 0 10px}
 .pnum{font:700 48px/1 var(--display);color:var(--ptier,var(--ink));font-variant-numeric:tabular-nums}
 .pnum small{font:600 16px var(--body);color:var(--muted)}
 .pline{margin:0;font-size:15px}
-.pscale{position:relative;display:grid;grid-template-columns:3fr 2fr 1.5fr 1.5fr 1fr;gap:2px;margin:14px 0 4px;height:8px}
+.pscale{position:relative;display:grid;grid-template-columns:3fr 2fr 1fr 1fr 2fr;gap:2px;margin:14px 0 4px;height:8px}
 .pscale span{border-radius:2px;opacity:.35}
 .pscale span.on{opacity:1}
 .pscale i{position:absolute;top:-4px;width:3px;height:16px;border-radius:2px;background:var(--ink);transform:translateX(-50%)}
-.pticks{display:grid;grid-template-columns:3fr 2fr 1.5fr 1.5fr 1fr;gap:2px;font:500 11px var(--mono);color:var(--muted)}
+.pticks{display:grid;grid-template-columns:3fr 2fr 1fr 1fr 2fr;gap:2px;font:500 11px var(--mono);color:var(--muted)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-top:14px}
+.stat{border-left:3px solid var(--accent);padding:2px 0 2px 10px}
+.stat .k{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.stat .v{font:500 20px var(--mono);font-variant-numeric:tabular-nums}
+.stat .v small{font:600 12px var(--body);color:var(--muted)}
+.stat .d{font-size:12px;color:var(--muted)}
+.formula{margin-top:0}
 .factors .v small{font:600 13px var(--body);color:var(--muted)}
 .factors .d{font-size:13px;color:var(--muted);margin-top:4px}
 .factors .k{display:flex;justify-content:space-between;gap:8px}
-.factors .w{font:500 11px var(--mono);color:var(--muted);letter-spacing:0;text-transform:none}
+.factors .w{white-space:nowrap;font:500 11px var(--mono);color:var(--muted);letter-spacing:0;text-transform:none}
 .factors details{margin-top:4px;font-size:13px}
 .factors summary{cursor:pointer;color:var(--accent)}
 .status{font-size:14px;color:var(--muted);background:var(--sunk);border:1px solid var(--rule);border-radius:8px;padding:10px 12px;margin:0}
@@ -141,7 +148,7 @@ tbody th{font-weight:600;color:var(--muted);white-space:nowrap}
   <header>
     <div>
       <h1>Commander Bracket Rater</h1>
-      <p class="sub">Paste a decklist and get a bracket (1–5) based on Wizards' official rules (Game Changers, mass land denial, chained extra turns and two-card combos) plus a 1–10 power level built from tutors, card draw, interaction, win conditions, mana base, commander and curve.</p>
+      <p class="sub">Paste a decklist and get a bracket (1–5) based on Wizards' official rules (Game Changers, mass land denial, chained extra turns and two-card combos) plus a 1–10 power level built from eight weighted factors: mana engine, consistency, win pressure, interaction, resilience, protection, disruption and card quality.</p>
     </div>
     <nav class="toplinks" aria-label="Resources">
       <a href="https://moxfield.com/" target="_blank" rel="noopener">Moxfield ↗</a>
@@ -199,7 +206,7 @@ tbody th{font-weight:600;color:var(--muted);white-space:nowrap}
           <tr><th>Extra turns</th><td>Avoid</td><td>Not chained</td><td>Not chained</td><td>Allowed</td><td>Allowed</td></tr>
           <tr><th>2-card infinite combos</th><td>No</td><td>No</td><td>Not early game</td><td>Allowed</td><td>Allowed</td></tr>
           <tr><th>Tutors</th><td colspan="5">No hard limit since the October 2025 update, but many tutors make a deck play above its bracket.</td></tr>
-          <tr><th>Power level<br><small>(this site, 1–10)</small></th><td>1.0–3.9</td><td>4.0–5.9</td><td>6.0–7.4</td><td>7.5–8.9</td><td>9.0–10</td></tr>
+          <tr><th>Power level<br><small>(this site, 1–10)</small></th><td>1.0–3.9</td><td>4.0–5.9</td><td>6.0–6.9</td><td>7.0–7.9</td><td>8.0–10</td></tr>
         </tbody>
       </table>
     </div>
@@ -214,7 +221,7 @@ tbody th{font-weight:600;color:var(--muted);white-space:nowrap}
       <div><a href="https://edhrec.com/" target="_blank" rel="noopener">EDHREC ↗</a><p>Common cards and strategies for your commander.</p></div>
       <div><a href="https://magic.wizards.com/en/banned-restricted-list" target="_blank" rel="noopener">Banned &amp; restricted list ↗</a><p>Check legality. This rater doesn't check bans.</p></div>
     </div>
-    <p class="foot">How the rating works: the hard rules set the lowest bracket the deck can be in (the <i>rules floor</i>). The power level can only raise it. The page looks up every card on <a href="https://scryfall.com/docs/api" target="_blank" rel="noopener">Scryfall</a> and scores seven factors from 0 to 10: tutors (15%), dedicated card draw (15%), interaction and removal (15%), win condition efficiency (20%), mana base consistency (15%), commander impact (10%) and average mana value (10%). The weighted total becomes a power level from 1 to 10 (<code>1 + 0.9 × total</code>), and the table above turns that into a bracket. Draw, removal, tutor, ramp and finisher detection reads each card's rules text, so unusual wording can be missed or miscounted. If Scryfall can't be reached, the page falls back to its built-in lists of tutors, fast mana and free interaction. The Game Changers list matches the February 2026 update (53 cards). Mass land denial, extra-turn and combo detection uses built-in lists of well-known cards, so it may miss obscure ones. Always talk it over with your playgroup before the game.</p>
+    <p class="foot">How the rating works: the hard rules set the lowest bracket the deck can be in (the <i>rules floor</i>). The power level can only raise it. The page looks up every card on <a href="https://scryfall.com/docs/api" target="_blank" rel="noopener">Scryfall</a> and scores eight factors from 0 to 10, then combines them with the formula from <a href="https://codingace.net/general/edh_power_level.html" target="_blank" rel="noopener">CodingAce's EDH power level calculator</a>: <code>Mana Engine × 18% + Consistency × 18% + Win Pressure × 20% + Interaction × 14% + Resilience × 10% + Protection × 8% + Disruptive Pressure × 7% + Card Quality × 5%</code>. The table above turns that into a bracket. How each factor is scored from the cards is this site's own estimate. Draw, removal, tutor, ramp and finisher detection reads each card's rules text, so unusual wording can be missed or miscounted. If Scryfall can't be reached, the page falls back to its built-in lists of tutors, fast mana and free interaction. The Game Changers list matches the February 2026 update (53 cards). Mass land denial, extra-turn and combo detection uses built-in lists of well-known cards, so it may miss obscure ones. Always talk it over with your playgroup before the game.</p>
     <p class="foot">Commander Bracket Rater is unofficial Fan Content permitted under the <a href="https://company.wizards.com/en/legal/fancontentpolicy" target="_blank" rel="noopener">Fan Content Policy</a>. Not approved or endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.</p>
   </section>
 </div>
@@ -293,7 +300,7 @@ const COMBOS = [
 const HIGH_IMPACT_COMMANDERS = ["Kinnan, Bonder Prodigy","Najeela, the Blade-Blossom","Thrasios, Triton Hero","Tymna the Weaver","Kraum, Ludevic's Opus","Rograkh, Son of Rohgahh","Urza, Lord High Artificer","Winota, Joiner of Forces","Korvold, Fae-Cursed King","Yuriko, the Tiger's Shadow","Tivit, Seller of Secrets","Kenrith, the Returned King","Sisay, Weatherlight Captain","Godo, Bandit Warlord","Zur the Enchanter","Tevesh Szat, Doom of Fools","Magda, Brazen Outlaw","Jhoira, Weatherlight Captain","Niv-Mizzet, Parun","Heliod, Sun-Crowned","Kess, Dissident Mage","Inalla, Archmage Ritualist","Grand Arbiter Augustin IV","Derevi, Empyrial Tactician","Selvala, Heart of the Wilds","Krenko, Mob Boss","Prossh, Skyraider of Kher","Animar, Soul of Elements","Chulane, Teller of Tales","Atraxa, Grand Unifier","Edgar Markov","The Ur-Dragon","Muldrotha, the Gravetide","Meren of Clan Nel Toth","Talrand, Sky Summoner","Sythis, Harvest's Hand","Dargo, the Shipwrecker","Ishai, Ojutai Dragonspeaker","Vial Smasher the Fierce","Silas Renn, Seeker Adept","Malcolm, Keen-Eyed Navigator","Esika, God of the Tree","Tergrid, God of Fright","Braids, Cabal Minion","Narset, Enlightened Exile","Etali, Primal Conqueror","Minsc & Boo, Timeless Heroes","Rocco, Street Chef","Satya, Aetherflux Genius","Lord Windgrace","Aminatou, the Fateshifter"];
 
 // Power level (1–10) → bracket. The rules floor still sets the minimum.
-const BANDS = [[9,5],[7.5,4],[6,3],[4,2],[0,1]];
+const BANDS = [[8,5],[7,4],[6,3],[4,2],[0,1]];
 const bandOf = p => BANDS.find(([min])=>p>=min)[1];
 
 const TIERS = {
@@ -386,7 +393,12 @@ function classify(c){
   const draw = !land && (
     /\bdraws? (two|three|four|five|six|seven|x|that many|\d+) (additional )?cards?\b/.test(t) ||
     /\bdraws? (cards equal to|a card for each|an additional card)\b/.test(t) ||
-    lines.some(l=>/\bdraws? a card\b/.test(l) && (/\b(whenever|at the beginning of)\b/.test(l) || l.split(/\bdraws? a card/)[0].includes(":"))) ||
+    // Repeatable single draws count; one-shot sacrifice abilities (Food, Clues) and loots (discard, then draw one) don't.
+    lines.some(l=>{
+      if (!/\bdraws? a card\b/.test(l) || /discard a card\. if you do, draws? a card/.test(l)) return false;
+      const before = l.split(/\bdraws? a card/)[0];
+      return /\b(whenever|at the beginning of)\b/.test(l) || (before.includes(":") && !/\bsacrifice\b/.test(before.split(":")[0]));
+    }) ||
     (/\bexile the top\b/.test(t) && /\byou may (play|cast) (that card|those cards|them|it|cards exiled)/.test(t)));
 
   const wipe =
@@ -409,26 +421,46 @@ function classify(c){
   const altwin = /\byou win the game\b/.test(t) || /\b(each opponent|target player|target opponent|that player|all opponents) loses? the game\b/.test(t);
   const finisher = !land && (altwin ||
     /\b(additional|extra) combat\b/.test(t) ||
-    hasS(/\bcreatures you control (get|gain|have) [^.]*(\+(\d+|x)\/\+(\d+|x)[^.]*until end of turn|double strike|\+x\/\+x)/) ||
+    hasS(/\b(creatures|[a-z-]+s) you control (get|gain|have) [^.]*(\+(\d+|x)\/\+(\d+|x)[^.]*until end of turn|double strike|\+x\/\+x|flying|trample|menace|can't be blocked)/) ||
     /\b(infect|toxic)\b|\bpoison counters?\b/.test(t) ||
     lines.some(l=>/\b(whenever|at the beginning of)\b/.test(l) && /\b((each|target) (opponent|player)|each other player) loses (\d+|x|that much) life\b|damage to each opponent/.test(l)) ||
     /\b(each opponent|target player) loses (x|life equal to)\b/.test(t));
   const engine = /\bcosts? \{\d+\} less\b|without paying (its|their) mana cost|\bcast [^.]*from (your graveyard|the top of your library)/.test(t);
 
-  return {land, mdfcLand, tutor, ramp, fast, draw, removal, wipe, free:M.free.has(norm(c.name)), altwin, finisher, engine, text:t};
+  const counter = /\bcounter target\b/.test(t);
+  // Comes back, or keeps value flowing, after removal and wipes.
+  const recursion = /\breturn [^.]*from (your|a) graveyard to (your hand|the battlefield)/.test(t) || /\b(put|return) [^.]*from your graveyard onto the battlefield/.test(t) ||
+    /\bcast [^.]*from your graveyard\b/.test(t) || /\b(flashback|escape|unearth|embalm|eternalize|disturb|encore|retrace|jump-start|persist|undying)\b/.test(t);
+  const tokenEngine = lines.some(l=>/\b(whenever|at the beginning of)\b/.test(l) && /\bcreate\b[^.]*\btokens?\b/.test(l) && !/treasure|food|clue/.test(l));
+  // Keeps your own things on the table.
+  const protect = !land && (/\b(hexproof|indestructible|shroud|phases? out|protection from)\b/.test(t) || /\bward\b/.test(t)) && !/\bloses? (hexproof|indestructible)/.test(t);
+  // Taxes, locks, discard and theft aimed at opponents.
+  const disrupt = /\b(each opponent|your opponents|target opponent|each player|players|target player) (can't|discards?|skips?)\b/.test(t) ||
+    /\bspells? (your opponents cast|opponents cast|each opponent casts)[^.]*cost\b/.test(t) || /\bcosts? \{\d+\} more\b/.test(t) ||
+    /\bgain control of target\b/.test(t) || /\b(don't|doesn't) untap during (its controller's|their)/.test(t) || /\bcan't be cast\b/.test(t) || M.mld.has(norm(c.name));
+
+  return {land, mdfcLand, tutor, ramp, fast, draw, removal, wipe, counter, free:M.free.has(norm(c.name)), altwin, finisher, engine, recursion, tokenEngine, protect, disrupt, text:t};
 }
 
 /* ---------- power level ---------- */
-// Seven factors, each scored 0–10. Power level = 1 + 0.9 × (weighted total), so it runs from 1 to 10.
+// Power Level = Mana Engine × 18% + Consistency × 18% + Win Pressure × 20% + Interaction × 14%
+//             + Resilience × 10% + Protection × 8% + Disruptive Pressure × 7% + Card Quality × 5%
+// Each factor is scored 0–10, so the power level runs 0–10 (shown as at least 1).
+const POWER_WEIGHTS = {mana:.18, consistency:.18, pressure:.20, interaction:.14, resilience:.10, protection:.08, disruption:.07, quality:.05};
+
 function powerLevel(r){
   const cmdKeys = new Set(r.cmds.map(norm));
   const deck = r.cards.filter(c=>!cmdKeys.has(norm(c.name))).map(c=>({...c, data:cardOf(c.name)}));
   const cmds = r.cmds.map(n=>({name:n, data:cardOf(n)}));
   const unresolved = [...new Set([...deck, ...cmds].filter(e=>!e.data).map(e=>e.name))];
-  const L = {tutor:[],draw:[],removal:[],wipe:[],ramp:[],fast:[],finisher:[],fixer:[]};
-  let lands=0, mdfc=0, nonland=0, cmcSum=0, freeN=0, finCmc=0;
+  const KEYS = ["tutor","draw","removal","wipe","counter","ramp","fast","recursion","tokenEngine","protect","disrupt"];
+  const L = {finisher:[], fixer:[], theme:[]}; KEYS.forEach(k=>L[k]=[]);
+  let lands=0, mdfc=0, nonland=0, cmcSum=0, cheap=0, freeN=0, finCmc=0;
   const idColors = new Set();
   (cmds.some(e=>e.data) ? cmds : deck).forEach(e=>(e.data?.color_identity||[]).forEach(x=>idColors.add(x)));
+  // Synergy: creature types on the commander (Human is too common to mean anything).
+  const cmdTypes = [...new Set(cmds.flatMap(e=>{ const tl = e.data?.card_faces?.[0]?.type_line ?? e.data?.type_line ?? ""; return tl.includes("—") ? tl.split("—")[1].trim().split(/\s+/) : []; }))].filter(x=>x && x!=="Human");
+  const themeRe = cmdTypes.length ? new RegExp(`\\b(${cmdTypes.map(x=>x.toLowerCase()).join("|")})s?\\b`) : null;
   deck.forEach(e=>{
     if (!e.data) return;
     const f = classify(e.data), q = e.qty;
@@ -436,45 +468,22 @@ function powerLevel(r){
       lands += q;
       const colors = (e.data.produced_mana||[]).filter(x=>idColors.has(x));
       if (colors.length>=2 || /search your library for [^.]*\bland/.test(f.text)) L.fixer.push(e.name);
-    } else { nonland += q; cmcSum += (e.data.cmc||0)*q; }
+    } else {
+      nonland += q; cmcSum += (e.data.cmc||0)*q; if ((e.data.cmc||0)<=2) cheap += q;
+      if (themeRe && (themeRe.test((e.data.type_line||"").toLowerCase()) || themeRe.test(f.text))) L.theme.push(e.name);
+    }
     if (f.mdfcLand) mdfc += q;
-    for (const k of ["tutor","draw","removal","wipe","ramp","fast"]) if (f[k]) L[k].push(e.name);
+    KEYS.forEach(k=>{ if (f[k]) L[k].push(e.name); });
     if (f.finisher){ L.finisher.push(e.name); finCmc += e.data.cmc||0; }
     if (f.free) freeN++;
   });
   const fixerQty = deck.filter(e=>L.fixer.includes(e.name)).reduce((a,e)=>a+e.qty,0);
   const avg = nonland ? cmcSum/nonland : 0;
-
-  // 1. Tutors: 8 or more scores 10.
-  const sTut = clamp(L.tutor.length*1.25);
-  // 2. Dedicated card draw: repeatable or multi-card draw. 10 or more scores 10.
-  const sDraw = clamp(L.draw.length);
-  // 3. Interaction: removal, counters and wipes; free spells count 1.5. 14 or more scores 10.
-  const sInt = clamp((L.removal.length + 0.5*freeN)/14*10);
-  // 4. Win condition efficiency: known combos beat alternate wins beat finishers; cheap finishers and tutors help.
-  const early = r.combos.some(c=>c.early), altwins = L.finisher.filter(n=>classify(cardOf(n)).altwin);
-  let sWin, winWhy;
-  if (r.combos.length){
-    sWin = (early ? 10 : 7.5) + 0.5*(r.combos.length-1);
-    winWhy = `${r.combos.length} two-card combo${r.combos.length>1?"s":""} (${early?"early game":"late game"})`;
-  } else if (L.finisher.length){
-    const fAvg = finCmc/L.finisher.length;
-    sWin = 3 + (L.finisher.length + altwins.length)*0.8 + (fAvg<=3 ? 1 : fAvg>=6 ? -1 : 0);
-    sWin = Math.min(sWin, 8);
-    winWhy = `${L.finisher.length} finisher${L.finisher.length>1?"s":""}, average mana value ${round1(fAvg)}`;
-  } else { sWin = 2; winWhy = "No combos or clear finishers found. Wins come from combat damage alone."; }
-  if (L.tutor.length>=3 && (r.combos.length || altwins.length)){ sWin += 1; winWhy += ", with tutors to find the pieces"; }
-  sWin = clamp(sWin, 1, 10);
-  // 5. Mana base consistency: enough mana sources for the curve, ramp, and lands that fix the commander's colors.
-  const rampEff = L.ramp.length + 0.5*L.fast.length;
-  const sources = lands + 0.5*mdfc + 0.5*(L.ramp.length - L.fast.length) + L.fast.length;
-  const ideal = 38 + 3*((avg||3) - 3);
-  const sLand = clamp(10*sources/ideal - Math.max(0, lands-42));
-  const sRamp = clamp(rampEff);
   const nColors = idColors.size;
-  const sFix = nColors<=1 ? 10 : clamp(10 * (lands ? fixerQty/lands : 0) / (nColors===2 ? 0.35 : 0.5));
-  const sMana = 0.45*sLand + 0.30*sRamp + 0.25*sFix;
-  // 6. Commander impact: known strong commanders, combo pieces, card-advantage engines and a cheap cost.
+  const gcN = r.gc ? r.gc.length : 0;
+  const staples = deck.filter(e=>M.fast.has(norm(e.name)) || M.free.has(norm(e.name)) || M.tut.has(norm(e.name)) || M.gc.has(norm(e.name))).length;
+
+  // Commander impact (feeds Consistency's synergy part).
   const why = [];
   const cmdScores = cmds.map(e=>{
     let s = 4; const d = e.data, f = d ? classify(d) : null, parts = [];
@@ -486,29 +495,82 @@ function powerLevel(r){
       s += Math.min(2.5, eng.length); parts.push(...eng);
       const mv = d.cmc||0; s += mv<=2 ? 1 : mv<=3 ? 0.5 : mv>=6 ? -1 : 0;
       parts.push(`costs ${mv}`);
+      if (f.finisher){ L.finisher.push(e.name); finCmc += mv; }
     }
     why.push(`${e.name}: ${parts.join(", ") || "no data"}`);
     return clamp(s, 1, 10);
   });
   const sCmd = cmdScores.length ? clamp(Math.max(...cmdScores) + (cmdScores.length>1 ? 0.5 : 0), 1, 10) : 1;
-  // 7. Average mana value of nonland cards (commander excluded). 2.0 or lower scores 10; each +1 costs 3 points.
-  const sCurve = nonland ? clamp(10 - 3*(avg-2), 1, 10) : 0;
 
-  const W = {tutors:.15, draw:.15, interaction:.15, wincon:.20, mana:.15, commander:.10, curve:.10};
-  const S = {tutors:sTut, draw:sDraw, interaction:sInt, wincon:sWin, mana:sMana, commander:sCmd, curve:sCurve};
-  const total = Object.keys(W).reduce((a,k)=>a + W[k]*S[k], 0);
-  const power = round1(1 + 0.9*total);
+  // Win condition efficiency: known combos beat alternate wins beat finishers; cheap finishers and tutors help.
+  const early = r.combos.some(c=>c.early);
+  const altwins = L.finisher.filter(n=>classify(cardOf(n)).altwin);
+  let sWin, winWhy;
+  if (r.combos.length){
+    sWin = (early ? 10 : 7.5) + 0.5*(r.combos.length-1);
+    winWhy = `${r.combos.length} two-card combo${r.combos.length>1?"s":""} (${early?"early game":"late game"})`;
+  } else if (L.finisher.length){
+    const fAvg = finCmc/L.finisher.length;
+    sWin = Math.min(8, 3 + (L.finisher.length + altwins.length)*0.8 + (fAvg<=3 ? 1 : fAvg>=6 ? -1 : 0));
+    winWhy = `${L.finisher.length} finisher${L.finisher.length>1?"s":""}, average mana value ${round1(fAvg)}`;
+  } else { sWin = 2; winWhy = "no combos or clear finishers, so wins come from combat damage alone"; }
+  if (L.tutor.length>=3 && (r.combos.length || altwins.length)){ sWin += 1; winWhy += ", with tutors to find the pieces"; }
+  sWin = clamp(sWin, 1, 10);
+
+  // Mana base: sources vs. what the curve needs, plus fixing for the commander's colors.
+  const sources = lands + 0.5*mdfc + 0.5*(L.ramp.length - L.fast.length) + L.fast.length;
+  const sLand = clamp(10*sources/(38 + 3*((avg||3) - 3)) - Math.max(0, lands-42));
+  const sFix = nColors<=1 ? 10 : clamp(10 * (lands ? fixerQty/lands : 0) / (nColors===2 ? 0.35 : 0.5));
+  const sBase = 0.6*sLand + 0.4*sFix;
+  const sCurve = nonland ? clamp(10 - 3*(avg-2)) : 0;           // 2.0 or lower = 10; each +1 costs 3
+  const sRamp = clamp(L.ramp.length + 0.5*L.fast.length);        // 10 ramp pieces = 10
+  const sFast = clamp(L.fast.length*2);                          // 5 fast mana = 10
+  const sDraw = clamp(L.draw.length);                            // 10 draw engines = 10
+  const sTut = clamp(L.tutor.length*1.25);                       // 8 tutors = 10
+  const themeShare = nonland ? L.theme.length/nonland : 0;
+  const sTheme = cmdTypes.length ? clamp(themeShare/0.4*10) : 5;  // 40% of spells on theme = 10
+
+  // Expected win turn: faster with ramp, fast mana, a low curve, finishers and combos.
+  let winTurn = 10 - 0.25*L.ramp.length - 0.5*L.fast.length - 2*((avg||3) - 3) - (L.finisher.length>=3 ? 1 : 0);
+  if (r.combos.length) winTurn = Math.min(winTurn, early ? 4 + Math.max(0, 3 - 0.5*L.tutor.length) : 7);
+  winTurn = clamp(Math.round(winTurn), 3, 12);
+  const sSpeed = clamp((11 - winTurn)/8*10);                      // turn 3 = 10, turn 11+ = 0
+
+  const S = {
+    mana: 0.30*sCurve + 0.25*sBase + 0.20*sRamp + 0.25*sFast,
+    consistency: 0.40*sDraw + 0.35*sTut + 0.25*(0.5*sCmd + 0.5*sTheme),
+    pressure: 0.55*sWin + 0.45*sSpeed,
+    interaction: clamp((L.removal.length + 0.5*freeN + 0.5*L.wipe.length)/18*10),   // 18 answers = 10
+    resilience: clamp(1 + L.recursion.length + 0.5*L.tokenEngine.length + 0.25*L.draw.length),
+    protection: clamp((L.protect.length + 0.5*L.counter.length)*1.25),            // 8 = 10
+    disruption: clamp(L.disrupt.length*1.5),                                       // 7 = 10
+    quality: clamp(gcN*1.5 + staples*0.5 + (nonland ? cheap/nonland : 0)*6)
+  };
+  const total = Object.keys(POWER_WEIGHTS).reduce((a,k)=>a + POWER_WEIGHTS[k]*S[k], 0);
+  const power = round1(clamp(total, 1, 10));
   const plural = (n,w) => `${n} ${w}${n===1?"":"s"}`;
+  const pct = x => Math.round(x*100) + "%";
   const factors = [
-    {k:"tutors", label:"Tutors", v:L.tutor.length, d:"Cards that search your library for a nonland card.", cards:L.tutor},
-    {k:"draw", label:"Dedicated card draw", v:L.draw.length, d:"Repeatable draw, or spells that draw two or more.", cards:L.draw},
-    {k:"interaction", label:"Interaction / removal", v:L.removal.length, d:`Spot removal, counterspells and bounce, including ${plural(L.wipe.length,"board wipe")}${freeN?` and ${freeN} free`:""}.`, cards:L.removal},
-    {k:"wincon", label:"Win condition efficiency", v:round1(sWin), of:10, d:winWhy+".", cards:[...new Set([...r.combos.flatMap(c=>[c.a,c.b]), ...L.finisher])]},
-    {k:"mana", label:"Mana base consistency", v:round1(sMana), of:10, d:`${lands} lands${mdfc?` + ${mdfc} MDFC`:""} · ${L.ramp.length} ramp (${L.fast.length} fast) · ${nColors<=1?"mono-color, no fixing needed":`${fixerQty} of ${lands} lands fix ${nColors} colors`}.`, cards:L.ramp},
-    {k:"commander", label:"Commander impact", v:round1(sCmd), of:10, d:why.length ? why.join("; ")+"." : "No commander found.", cards:[]},
-    {k:"curve", label:"Average CMC", v:nonland ? avg.toFixed(2) : "–", d:`Across ${nonland} nonland cards, commander excluded.`, cards:[]}
-  ].map(f=>({...f, score:round1(S[f.k]), weight:W[f.k]}));
-  return {power, band:bandOf(power), factors, unresolved, avg};
+    {k:"mana", label:"Mana Engine", d:`Curve ${avg.toFixed(2)} average mana value, ${lands} lands${mdfc?` + ${mdfc} MDFC`:""}, ${plural(L.ramp.length,"ramp piece")}, ${L.fast.length} fast mana.`, cards:L.ramp},
+    {k:"consistency", label:"Consistency", d:`${plural(L.draw.length,"draw engine")}, ${plural(L.tutor.length,"tutor")}, commander impact ${round1(sCmd)}/10${cmdTypes.length?`, ${pct(themeShare)} of spells on theme (${cmdTypes.join(", ")})`:""}.`, cards:[...L.draw, ...L.tutor]},
+    {k:"pressure", label:"Win Pressure", d:`Win condition efficiency ${round1(sWin)}/10 (${winWhy}). Expected win around turn ${winTurn}.`, cards:[...new Set([...r.combos.flatMap(c=>[c.a,c.b]), ...L.finisher])]},
+    {k:"interaction", label:"Interaction", d:`${plural(L.removal.length,"answer")}: removal, counters and bounce, including ${plural(L.wipe.length,"board wipe")}${freeN?` and ${freeN} free`:""}.`, cards:L.removal},
+    {k:"resilience", label:"Resilience", d:`${plural(L.recursion.length,"recursion card")}, ${plural(L.tokenEngine.length,"token engine")}, plus draw engines to refill.`, cards:[...L.recursion, ...L.tokenEngine]},
+    {k:"protection", label:"Protection", d:`${plural(L.protect.length,"card")} with hexproof, indestructible, ward, phasing or protection, and ${plural(L.counter.length,"counterspell")}.`, cards:[...L.protect, ...L.counter]},
+    {k:"disruption", label:"Disruptive Pressure", d:`${plural(L.disrupt.length,"card")} that tax, lock, discard or steal from opponents.`, cards:L.disrupt},
+    {k:"quality", label:"Card Quality", d:`${plural(gcN,"Game Changer")}, ${plural(staples,"known staple")}, ${pct(nonland ? cheap/nonland : 0)} of spells cost 2 or less.`, cards:[]}
+  ].map(f=>({...f, v:round1(S[f.k]), of:10, score:round1(S[f.k]), weight:POWER_WEIGHTS[f.k]}));
+  // Deck stats: the headline numbers, shown alongside the formula.
+  const stats = [
+    {label:"Tutors", v:L.tutor.length},
+    {label:"Dedicated card draw", v:L.draw.length},
+    {label:"Interaction / removal", v:L.removal.length},
+    {label:"Win condition efficiency", v:round1(sWin), of:10},
+    {label:"Mana base consistency", v:round1(sBase), of:10, d:`${lands} lands, ${nColors<=1?"mono-color":`${fixerQty} fix ${nColors} colors`}`},
+    {label:"Commander impact", v:round1(sCmd), of:10, d:why.join("; ")},
+    {label:"Average CMC", v:nonland ? avg.toFixed(2) : "–", d:`${nonland} nonland cards, commander excluded`}
+  ];
+  return {power, band:bandOf(power), factors, stats, unresolved, avg, winTurn};
 }
 
 /* ---------- parsing ---------- */
@@ -595,7 +657,7 @@ function rate(text, cmdField, intent, retry){
   // Power level needs every card looked up on Scryfall. Until then (or if Scryfall is down) use the built-in lists.
   const names = [...cards.map(c=>c.name), ...cmds];
   const pending = cards.length ? ensureCards(names, retry) : 0;
-  const pw = cards.length && !pending ? powerLevel({cards, cmds, combos}) : null;
+  const pw = cards.length && !pending ? powerLevel({cards, cmds, combos, gc}) : null;
 
   let rec_b = floor; const notes=[];
   if (pw){
@@ -604,7 +666,7 @@ function rate(text, cmdField, intent, retry){
     else if (pw.band<floor) notes.push(`The power level (${pw.power.toFixed(1)}) reads like Bracket ${pw.band}, but the rules below keep the deck at Bracket ${floor} or higher.`);
     if (intent==="exhibition" && floor===1 && rec_b===2){ rec_b=1; notes.push("Marked as theme first, so it's rated Bracket 1 (Exhibition)."); }
     else if (intent==="exhibition" && floor===2 && rec_b===2) notes.push("Bracket 1 decks should avoid extra turns entirely; cut them to play at Exhibition.");
-    if (rec_b===5 && intent!=="cedh") notes.push("A power level of 9 or more is cEDH territory. Bracket 5 also means building for a competitive meta; if the deck isn't, call it Bracket 4.");
+    if (rec_b===5 && intent!=="cedh") notes.push("A power level of 8 or more is cEDH territory. Bracket 5 also means building for a competitive meta; if the deck isn't, call it Bracket 4.");
     if (intent==="cedh" && rec_b===4){ rec_b=5; notes.push("Marked as tuned for competitive pods. Bracket 5 is about intent and metagame, not just card choices."); }
     else if (floor===4 && rec_b===4 && cedhSignals>=3) notes.push("The list has several cEDH hallmarks (fast mana, dense tutors, free interaction, cheap combos). If you tune it for a competitive meta, call it Bracket 5.");
     if (intent==="cedh" && rec_b<4) notes.push("Bracket 5 needs a Bracket 4-level list built for a competitive meta. By its cards, this deck isn't there yet.");
@@ -648,11 +710,12 @@ function powerSection(r){
   }
   const p = r.pw, B = TIERS[p.band];
   const at = ((p.power-1)/9*100).toFixed(1);
-  const tile = f => `<div class="gauge"><div class="k">${f.label}<span class="w">${Math.round(f.weight*100)}%</span></div>
-    <div class="v">${f.v}${f.of?`<small> / ${f.of}</small>`:""}</div>
-    <div class="bar" title="Score ${f.score} / 10"><i style="width:${f.score*10}%"></i></div>
-    <div class="d">Score ${f.score} / 10. ${esc(f.d)}</div>
-    ${f.cards.length?`<details><summary>${f.cards.length} card${f.cards.length===1?"":"s"}</summary>${cardList(f.cards)}</details>`:""}</div>`;
+  const tile = f => `<div class="gauge"><div class="k">${f.label}<span class="w">× ${Math.round(f.weight*100)}%</span></div>
+    <div class="v">${f.v}<small> / 10</small></div>
+    <div class="bar"><i style="width:${f.score*10}%"></i></div>
+    <div class="d">${esc(f.d)}</div>
+    ${f.cards.length?`<details><summary>${f.cards.length} card${f.cards.length===1?"":"s"}</summary>${cardList([...new Set(f.cards)])}</details>`:""}</div>`;
+  const stat = s => `<div class="stat"><div class="k">${s.label}</div><div class="v">${s.v}${s.of?`<small> / ${s.of}</small>`:""}</div>${s.d?`<div class="d">${esc(s.d)}</div>`:""}</div>`;
   return `<h2>Power level</h2>
     <div class="power" style="--ptier:${B.color}">
       <div class="pnum">${p.power.toFixed(1)}<small> / 10</small></div>
@@ -661,8 +724,11 @@ function powerSection(r){
     <div class="pscale" role="img" aria-label="Power level ${p.power} of 10">
       ${[1,2,3,4,5].map(b=>`<span class="${b===p.band?"on":""}" style="background:${TIERS[b].color}"></span>`).join("")}<i style="left:${at}%"></i>
     </div>
-    <div class="pticks"><span>1</span><span>4</span><span>6</span><span>7.5</span><span>9</span></div>
-    <div class="gauges factors" style="margin-top:14px">${p.factors.map(tile).join("")}</div>
+    <div class="pticks"><span>1</span><span>4</span><span>6</span><span>7</span><span>8</span></div>
+    <div class="stats">${p.stats.map(stat).join("")}</div>
+    <h2>How the power level is built</h2>
+    <p class="hint formula">Power level = Mana Engine × 18% + Consistency × 18% + Win Pressure × 20% + Interaction × 14% + Resilience × 10% + Protection × 8% + Disruptive Pressure × 7% + Card Quality × 5% = <b>${p.power.toFixed(1)}</b></p>
+    <div class="gauges factors" style="margin-top:10px">${p.factors.map(tile).join("")}</div>
     ${p.unresolved.length?`<p class="hint" style="margin-top:8px">Scryfall didn't recognize ${p.unresolved.map(esc).join(", ")}, so ${p.unresolved.length===1?"it's":"they're"} left out of the power level.</p>`:""}`;
 }
 
