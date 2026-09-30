@@ -99,6 +99,26 @@ h2{font:700 17px/1.3 var(--display);letter-spacing:.03em;margin:26px 0 10px}
 .gauge .bar i{display:block;height:100%;background:var(--accent)}
 .gauge .cards{font-size:13px}
 
+/* power level */
+.power{display:grid;grid-template-columns:auto 1fr;gap:6px 18px;align-items:center}
+.pnum{font:700 48px/1 var(--display);color:var(--ptier,var(--ink));font-variant-numeric:tabular-nums}
+.pnum small{font:600 16px var(--body);color:var(--muted)}
+.pline{margin:0;font-size:15px}
+.pscale{position:relative;display:grid;grid-template-columns:3fr 2fr 1.5fr 1.5fr 1fr;gap:2px;margin:14px 0 4px;height:8px}
+.pscale span{border-radius:2px;opacity:.35}
+.pscale span.on{opacity:1}
+.pscale i{position:absolute;top:-4px;width:3px;height:16px;border-radius:2px;background:var(--ink);transform:translateX(-50%)}
+.pticks{display:grid;grid-template-columns:3fr 2fr 1.5fr 1.5fr 1fr;gap:2px;font:500 11px var(--mono);color:var(--muted)}
+.factors .v small{font:600 13px var(--body);color:var(--muted)}
+.factors .d{font-size:13px;color:var(--muted);margin-top:4px}
+.factors .k{display:flex;justify-content:space-between;gap:8px}
+.factors .w{font:500 11px var(--mono);color:var(--muted);letter-spacing:0;text-transform:none}
+.factors details{margin-top:4px;font-size:13px}
+.factors summary{cursor:pointer;color:var(--accent)}
+.status{font-size:14px;color:var(--muted);background:var(--sunk);border:1px solid var(--rule);border-radius:8px;padding:10px 12px;margin:0}
+.status.err{color:var(--bad);background:var(--bad-bg);border-color:transparent}
+.linkbtn{font:inherit;color:var(--accent);background:none;border:0;padding:0;text-decoration:underline;cursor:pointer}
+
 .advice{margin:0;padding-left:20px;display:grid;gap:6px;font-size:15px}
 .ref{margin-top:26px}
 .tablewrap{overflow-x:auto}
@@ -121,7 +141,7 @@ tbody th{font-weight:600;color:var(--muted);white-space:nowrap}
   <header>
     <div>
       <h1>Commander Bracket Rater</h1>
-      <p class="sub">Paste a decklist and get a bracket (1–5) based on Wizards' official rules: Game Changers, mass land denial, chained extra turns and two-card combos, plus a read on overall power.</p>
+      <p class="sub">Paste a decklist and get a bracket (1–5) based on Wizards' official rules (Game Changers, mass land denial, chained extra turns and two-card combos) plus a 1–10 power level built from tutors, card draw, interaction, win conditions, mana base, commander and curve.</p>
     </div>
     <nav class="toplinks" aria-label="Resources">
       <a href="https://moxfield.com/" target="_blank" rel="noopener">Moxfield ↗</a>
@@ -140,7 +160,7 @@ tbody th{font-weight:600;color:var(--muted);white-space:nowrap}
       </div>
       <div class="field">
         <label class="label" for="commander">Commander(s)</label>
-        <input type="text" id="commander" placeholder="Name only, no quantity. Found automatically if the list has a Commander section">
+        <input type="text" id="commander" placeholder="Name only. Separate partners with + or ;. Found automatically if the list has a Commander section">
       </div>
       <div class="field">
         <label class="label" for="deck">Decklist</label>
@@ -179,6 +199,7 @@ tbody th{font-weight:600;color:var(--muted);white-space:nowrap}
           <tr><th>Extra turns</th><td>Avoid</td><td>Not chained</td><td>Not chained</td><td>Allowed</td><td>Allowed</td></tr>
           <tr><th>2-card infinite combos</th><td>No</td><td>No</td><td>Not early game</td><td>Allowed</td><td>Allowed</td></tr>
           <tr><th>Tutors</th><td colspan="5">No hard limit since the October 2025 update, but many tutors make a deck play above its bracket.</td></tr>
+          <tr><th>Power level<br><small>(this site, 1–10)</small></th><td>1.0–3.9</td><td>4.0–5.9</td><td>6.0–7.4</td><td>7.5–8.9</td><td>9.0–10</td></tr>
         </tbody>
       </table>
     </div>
@@ -193,7 +214,7 @@ tbody th{font-weight:600;color:var(--muted);white-space:nowrap}
       <div><a href="https://edhrec.com/" target="_blank" rel="noopener">EDHREC ↗</a><p>Common cards and strategies for your commander.</p></div>
       <div><a href="https://magic.wizards.com/en/banned-restricted-list" target="_blank" rel="noopener">Banned &amp; restricted list ↗</a><p>Check legality. This rater doesn't check bans.</p></div>
     </div>
-    <p class="foot">How the rating works: the hard rules set the lowest bracket the deck can be in (the <i>rules floor</i>). Tutors, fast mana and free interaction can push the recommendation up one bracket when the power is clearly higher than the rules alone show. The Game Changers list matches the February 2026 update (53 cards). Mass land denial, extra-turn, combo and tutor detection uses built-in lists of well-known cards, so it may miss obscure ones. Always talk it over with your playgroup before the game.</p>
+    <p class="foot">How the rating works: the hard rules set the lowest bracket the deck can be in (the <i>rules floor</i>). The power level can only raise it. The page looks up every card on <a href="https://scryfall.com/docs/api" target="_blank" rel="noopener">Scryfall</a> and scores seven factors from 0 to 10: tutors (15%), dedicated card draw (15%), interaction and removal (15%), win condition efficiency (20%), mana base consistency (15%), commander impact (10%) and average mana value (10%). The weighted total becomes a power level from 1 to 10 (<code>1 + 0.9 × total</code>), and the table above turns that into a bracket. Draw, removal, tutor, ramp and finisher detection reads each card's rules text, so unusual wording can be missed or miscounted. If Scryfall can't be reached, the page falls back to its built-in lists of tutors, fast mana and free interaction. The Game Changers list matches the February 2026 update (53 cards). Mass land denial, extra-turn and combo detection uses built-in lists of well-known cards, so it may miss obscure ones. Always talk it over with your playgroup before the game.</p>
     <p class="foot">Commander Bracket Rater is unofficial Fan Content permitted under the <a href="https://company.wizards.com/en/legal/fancontentpolicy" target="_blank" rel="noopener">Fan Content Policy</a>. Not approved or endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.</p>
   </section>
 </div>
@@ -268,6 +289,13 @@ const COMBOS = [
   ["Godo, Bandit Warlord","Helm of the Host",11,"Infinite combats"]
 ];
 
+// Commanders that raise a deck's power on their own: cEDH staples and famously strong engines.
+const HIGH_IMPACT_COMMANDERS = ["Kinnan, Bonder Prodigy","Najeela, the Blade-Blossom","Thrasios, Triton Hero","Tymna the Weaver","Kraum, Ludevic's Opus","Rograkh, Son of Rohgahh","Urza, Lord High Artificer","Winota, Joiner of Forces","Korvold, Fae-Cursed King","Yuriko, the Tiger's Shadow","Tivit, Seller of Secrets","Kenrith, the Returned King","Sisay, Weatherlight Captain","Godo, Bandit Warlord","Zur the Enchanter","Tevesh Szat, Doom of Fools","Magda, Brazen Outlaw","Jhoira, Weatherlight Captain","Niv-Mizzet, Parun","Heliod, Sun-Crowned","Kess, Dissident Mage","Inalla, Archmage Ritualist","Grand Arbiter Augustin IV","Derevi, Empyrial Tactician","Selvala, Heart of the Wilds","Krenko, Mob Boss","Prossh, Skyraider of Kher","Animar, Soul of Elements","Chulane, Teller of Tales","Atraxa, Grand Unifier","Edgar Markov","The Ur-Dragon","Muldrotha, the Gravetide","Meren of Clan Nel Toth","Talrand, Sky Summoner","Sythis, Harvest's Hand","Dargo, the Shipwrecker","Ishai, Ojutai Dragonspeaker","Vial Smasher the Fierce","Silas Renn, Seeker Adept","Malcolm, Keen-Eyed Navigator","Esika, God of the Tree","Tergrid, God of Fright","Braids, Cabal Minion","Narset, Enlightened Exile","Etali, Primal Conqueror","Minsc & Boo, Timeless Heroes","Rocco, Street Chef","Satya, Aetherflux Genius","Lord Windgrace","Aminatou, the Fateshifter"];
+
+// Power level (1–10) → bracket. The rules floor still sets the minimum.
+const BANDS = [[9,5],[7.5,4],[6,3],[4,2],[0,1]];
+const bandOf = p => BANDS.find(([min])=>p>=min)[1];
+
 const TIERS = {
   1:{name:"Exhibition", color:"var(--t1)", line:"Theme first. Plays well with other casual, thematic decks."},
   2:{name:"Core", color:"var(--t2)", line:"About the strength of a current preconstructed deck. Games are fair and interactive."},
@@ -287,7 +315,201 @@ const cardLink = n => `<a href="${scry(n)}" target="_blank" rel="noopener" title
 const cardList = names => names.length ? `<div class="cards">${names.map(cardLink).join("")}</div>` : "";
 const spellbook = (a,b) => "https://commanderspellbook.com/search/?q=" + encodeURIComponent(`card:"${a}" card:"${b}"`);
 
-const M = { gc:mapOf(GAME_CHANGERS), mld:mapOf(MLD), et:mapOf(EXTRA_TURNS), eng:mapOf(TURN_ENGINES), rec:mapOf(RECURSION), tut:mapOf(TUTORS), fast:mapOf(FAST_MANA), free:mapOf(FREE_INTERACTION) };
+const M = { gc:mapOf(GAME_CHANGERS), mld:mapOf(MLD), et:mapOf(EXTRA_TURNS), eng:mapOf(TURN_ENGINES), rec:mapOf(RECURSION), tut:mapOf(TUTORS), fast:mapOf(FAST_MANA), free:mapOf(FREE_INTERACTION), hic:mapOf(HIGH_IMPACT_COMMANDERS) };
+
+/* ---------- card data (Scryfall) ---------- */
+const CARD_DATA = new Map(); // norm(name) -> Scryfall card, or null when Scryfall doesn't know the name
+let lookupBusy = false, lookupError = "";
+const sleep = ms => new Promise(res=>setTimeout(res,ms));
+const cardOf = n => CARD_DATA.has(norm(n)) ? CARD_DATA.get(norm(n)) : CARD_DATA.get(norm(n.split("/")[0]));
+const known = n => CARD_DATA.has(norm(n)) || CARD_DATA.has(norm(n.split("/")[0]));
+function storeCard(c){ faceKeys(c.name).forEach(k=>CARD_DATA.set(k,c)); (c.card_faces||[]).forEach(f=>CARD_DATA.set(norm(f.name),c)); }
+
+async function scryfall(url, opts={}){
+  const res = await fetch(url, {...opts, headers:{Accept:"application/json", ...(opts.headers||{})}});
+  if (!res.ok && res.status!==404) throw new Error("Scryfall answered " + res.status);
+  return res.ok ? res.json() : null;
+}
+async function fetchCards(names){
+  // Exact names, 75 per request (Scryfall's limit). Scryfall asks for 50–100 ms between requests.
+  for (let i=0;i<names.length;i+=75){
+    if (i) await sleep(100);
+    const j = await scryfall("https://api.scryfall.com/cards/collection", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({identifiers:names.slice(i,i+75).map(name=>({name}))})});
+    (j?.data||[]).forEach(storeCard);
+  }
+  // Names the exact lookup missed (typos, missing accents, front face only): try a fuzzy match for the first few.
+  const missed = names.filter(n=>!known(n));
+  for (const n of missed.slice(0,20)){
+    await sleep(100);
+    const c = await scryfall("https://api.scryfall.com/cards/named?fuzzy=" + encodeURIComponent(n));
+    if (c){ storeCard(c); CARD_DATA.set(norm(n), c); } else CARD_DATA.set(norm(n), null);
+  }
+  missed.forEach(n=>{ if (!known(n)) CARD_DATA.set(norm(n), null); });
+}
+// Starts a lookup for names we haven't seen. After a failure it waits for the Rate button instead of retrying on every keystroke.
+function ensureCards(names, retry){
+  if (retry) lookupError = "";
+  const missing = [...new Set(names.filter(n=>!known(n)))];
+  if (!missing.length || lookupBusy || lookupError) return missing.length;
+  lookupBusy = true;
+  fetchCards(missing).catch(e=>{ lookupError = e.message || "network error"; }).finally(()=>{ lookupBusy = false; run(); });
+  return missing.length;
+}
+
+/* ---------- reading rules text ---------- */
+const clamp = (x,lo=0,hi=10) => Math.max(lo, Math.min(hi, x));
+const round1 = x => Math.round(x*10)/10;
+const LANDWORDS = /\b(lands?|plains|islands?|swamps?|mountains?|forests?|gates?|deserts?|caves?)\b/;
+const ANY_TARGET = "(?:up to (?:one|two|three|x) )?(?:another )?target";
+
+// What a card does, from its Scryfall data. Everything is a best guess from the wording.
+function classify(c){
+  const front = c.card_faces?.[0]?.type_line ?? c.type_line ?? "";
+  const land = /\bLand\b/.test(front);
+  const mdfcLand = !land && c.layout==="modal_dfc" && /\bLand\b/.test(c.type_line||"");
+  let t = (c.oracle_text ?? (c.card_faces||[]).map(f=>f.oracle_text||"").join("\n")).toLowerCase();
+  [c.name, ...(c.card_faces||[]).map(f=>f.name)].forEach(n=>{ t = t.split(n.toLowerCase()).join("~"); });
+  const lines = t.split("\n");
+  const sents = t.split(/\.(?:\s|$)|\n/).filter(Boolean);
+  const hasS = re => sents.some(s=>re.test(s));
+  const yoursOnly = s => /\byou control\b/.test(s) && !/(you don't control|an opponent controls|your opponents control|opponents control)/.test(s);
+
+  const tutor = M.tut.has(norm(c.name)) || /\btransmute\b/.test(t) ||
+    [...t.matchAll(/search your library for ([^.]*?)\bcards?\b( named)?/g)].some(m=>!m[2] && !LANDWORDS.test(m[1]));
+
+  const ramp = !land && (
+    /\badd (\{[wubrgcx0-9]|(one|two|three|four|five|x|that much) mana|mana|an amount of)/.test(t) ||
+    hasS(/search your library for [^.]*\b(lands?|plains|islands?|swamps?|mountains?|forests?)\b[^.]*onto the battlefield/) ||
+    /\bcreate[^.]*\btreasure\b/.test(t) || /\bplay (an|two) additional lands?\b/.test(t));
+  const fast = M.fast.has(norm(c.name)) || (ramp && c.cmc<=1 && /\bArtifact\b/.test(front) && !/\bCreature\b/.test(front));
+
+  const draw = !land && (
+    /\bdraws? (two|three|four|five|six|seven|x|that many|\d+) (additional )?cards?\b/.test(t) ||
+    /\bdraws? (cards equal to|a card for each|an additional card)\b/.test(t) ||
+    lines.some(l=>/\bdraws? a card\b/.test(l) && (/\b(whenever|at the beginning of)\b/.test(l) || l.split(/\bdraws? a card/)[0].includes(":"))) ||
+    (/\bexile the top\b/.test(t) && /\byou may (play|cast) (that card|those cards|them|it|cards exiled)/.test(t)));
+
+  const wipe =
+    sents.some(s=>/\b(destroy|exile) (all|each)\b/.test(s) && !/graveyard/.test(s) && !yoursOnly(s)) ||
+    hasS(/\breturn (all|each) [^.]*to (its|their) owners?'?s? hands?/) ||
+    hasS(/\b(all|each) (other )?(creatures?|nonland permanents?)( your opponents control)? gets? -/) ||
+    hasS(/\bdeals? [^.]*damage to each (other )?creature/) || hasS(/\beach player sacrifices (all|x|half)/);
+  const removal = wipe || M.free.has(norm(c.name)) || sents.some(s=>
+    ((new RegExp(`\\b(destroy|exile)s? ${ANY_TARGET}\\b`).test(s) || /\b(destroy|exile) any number of target\b/.test(s)) && !/graveyard/.test(s) && !yoursOnly(s)) ||
+    /\bcounter target\b/.test(s) ||
+    (new RegExp(`\\breturn ${ANY_TARGET}\\b[^.]*\\bto (its|their) owners?'?s? hands?`).test(s) && !yoursOnly(s)) ||
+    (new RegExp(`\\bput ${ANY_TARGET}\\b[^.]*on (the )?(top|bottom) of (its|their) owners?'?s? librar`).test(s)) ||
+    /\b(owner of target|target) [^.]*\bshuffles? (it|that permanent) into\b/.test(s) ||
+    new RegExp(`\\bdeals? [^.]*damage to (any (other )?target|${ANY_TARGET} (creature|planeswalker|attacking|blocking|nonland|player or planeswalker|opponent or planeswalker)|each (other )?creature)`).test(s) ||
+    /\b(target|each) (player|opponent) sacrifices\b/.test(s) || /\beach opponent sacrifices\b/.test(s) ||
+    (/\bgets? -(\d+|x)\/-(\d+|x)\b/.test(s) && /\btarget\b/.test(s) && !yoursOnly(s)) ||
+    new RegExp(`\\bfights? ${ANY_TARGET}\\b`).test(s) ||
+    /\benchanted (creature|permanent) can't (attack|block)/.test(s));
+
+  const altwin = /\byou win the game\b/.test(t) || /\b(each opponent|target player|target opponent|that player|all opponents) loses? the game\b/.test(t);
+  const finisher = !land && (altwin ||
+    /\b(additional|extra) combat\b/.test(t) ||
+    hasS(/\bcreatures you control (get|gain|have) [^.]*(\+(\d+|x)\/\+(\d+|x)[^.]*until end of turn|double strike|\+x\/\+x)/) ||
+    /\b(infect|toxic)\b|\bpoison counters?\b/.test(t) ||
+    lines.some(l=>/\b(whenever|at the beginning of)\b/.test(l) && /\b((each|target) (opponent|player)|each other player) loses (\d+|x|that much) life\b|damage to each opponent/.test(l)) ||
+    /\b(each opponent|target player) loses (x|life equal to)\b/.test(t));
+  const engine = /\bcosts? \{\d+\} less\b|without paying (its|their) mana cost|\bcast [^.]*from (your graveyard|the top of your library)/.test(t);
+
+  return {land, mdfcLand, tutor, ramp, fast, draw, removal, wipe, free:M.free.has(norm(c.name)), altwin, finisher, engine, text:t};
+}
+
+/* ---------- power level ---------- */
+// Seven factors, each scored 0–10. Power level = 1 + 0.9 × (weighted total), so it runs from 1 to 10.
+function powerLevel(r){
+  const cmdKeys = new Set(r.cmds.map(norm));
+  const deck = r.cards.filter(c=>!cmdKeys.has(norm(c.name))).map(c=>({...c, data:cardOf(c.name)}));
+  const cmds = r.cmds.map(n=>({name:n, data:cardOf(n)}));
+  const unresolved = [...new Set([...deck, ...cmds].filter(e=>!e.data).map(e=>e.name))];
+  const L = {tutor:[],draw:[],removal:[],wipe:[],ramp:[],fast:[],finisher:[],fixer:[]};
+  let lands=0, mdfc=0, nonland=0, cmcSum=0, freeN=0, finCmc=0;
+  const idColors = new Set();
+  (cmds.some(e=>e.data) ? cmds : deck).forEach(e=>(e.data?.color_identity||[]).forEach(x=>idColors.add(x)));
+  deck.forEach(e=>{
+    if (!e.data) return;
+    const f = classify(e.data), q = e.qty;
+    if (f.land){
+      lands += q;
+      const colors = (e.data.produced_mana||[]).filter(x=>idColors.has(x));
+      if (colors.length>=2 || /search your library for [^.]*\bland/.test(f.text)) L.fixer.push(e.name);
+    } else { nonland += q; cmcSum += (e.data.cmc||0)*q; }
+    if (f.mdfcLand) mdfc += q;
+    for (const k of ["tutor","draw","removal","wipe","ramp","fast"]) if (f[k]) L[k].push(e.name);
+    if (f.finisher){ L.finisher.push(e.name); finCmc += e.data.cmc||0; }
+    if (f.free) freeN++;
+  });
+  const fixerQty = deck.filter(e=>L.fixer.includes(e.name)).reduce((a,e)=>a+e.qty,0);
+  const avg = nonland ? cmcSum/nonland : 0;
+
+  // 1. Tutors: 8 or more scores 10.
+  const sTut = clamp(L.tutor.length*1.25);
+  // 2. Dedicated card draw: repeatable or multi-card draw. 10 or more scores 10.
+  const sDraw = clamp(L.draw.length);
+  // 3. Interaction: removal, counters and wipes; free spells count 1.5. 14 or more scores 10.
+  const sInt = clamp((L.removal.length + 0.5*freeN)/14*10);
+  // 4. Win condition efficiency: known combos beat alternate wins beat finishers; cheap finishers and tutors help.
+  const early = r.combos.some(c=>c.early), altwins = L.finisher.filter(n=>classify(cardOf(n)).altwin);
+  let sWin, winWhy;
+  if (r.combos.length){
+    sWin = (early ? 10 : 7.5) + 0.5*(r.combos.length-1);
+    winWhy = `${r.combos.length} two-card combo${r.combos.length>1?"s":""} (${early?"early game":"late game"})`;
+  } else if (L.finisher.length){
+    const fAvg = finCmc/L.finisher.length;
+    sWin = 3 + (L.finisher.length + altwins.length)*0.8 + (fAvg<=3 ? 1 : fAvg>=6 ? -1 : 0);
+    sWin = Math.min(sWin, 8);
+    winWhy = `${L.finisher.length} finisher${L.finisher.length>1?"s":""}, average mana value ${round1(fAvg)}`;
+  } else { sWin = 2; winWhy = "No combos or clear finishers found. Wins come from combat damage alone."; }
+  if (L.tutor.length>=3 && (r.combos.length || altwins.length)){ sWin += 1; winWhy += ", with tutors to find the pieces"; }
+  sWin = clamp(sWin, 1, 10);
+  // 5. Mana base consistency: enough mana sources for the curve, ramp, and lands that fix the commander's colors.
+  const rampEff = L.ramp.length + 0.5*L.fast.length;
+  const sources = lands + 0.5*mdfc + 0.5*(L.ramp.length - L.fast.length) + L.fast.length;
+  const ideal = 38 + 3*((avg||3) - 3);
+  const sLand = clamp(10*sources/ideal - Math.max(0, lands-42));
+  const sRamp = clamp(rampEff);
+  const nColors = idColors.size;
+  const sFix = nColors<=1 ? 10 : clamp(10 * (lands ? fixerQty/lands : 0) / (nColors===2 ? 0.35 : 0.5));
+  const sMana = 0.45*sLand + 0.30*sRamp + 0.25*sFix;
+  // 6. Commander impact: known strong commanders, combo pieces, card-advantage engines and a cheap cost.
+  const why = [];
+  const cmdScores = cmds.map(e=>{
+    let s = 4; const d = e.data, f = d ? classify(d) : null, parts = [];
+    if (M.hic.has(norm(e.name))){ s += 4; parts.push("well-known high-power commander"); }
+    if (r.combos.some(c=>norm(c.a)===norm(e.name)||norm(c.b)===norm(e.name))){ s += 2; parts.push("combo piece"); }
+    if (M.gc.has(norm(e.name))){ s += 1.5; parts.push("Game Changer"); }
+    if (f){
+      const eng = [f.draw&&"draws cards", f.tutor&&"tutors", f.ramp&&"makes mana", f.engine&&"cheats on costs", f.removal&&"removes threats"].filter(Boolean);
+      s += Math.min(2.5, eng.length); parts.push(...eng);
+      const mv = d.cmc||0; s += mv<=2 ? 1 : mv<=3 ? 0.5 : mv>=6 ? -1 : 0;
+      parts.push(`costs ${mv}`);
+    }
+    why.push(`${e.name}: ${parts.join(", ") || "no data"}`);
+    return clamp(s, 1, 10);
+  });
+  const sCmd = cmdScores.length ? clamp(Math.max(...cmdScores) + (cmdScores.length>1 ? 0.5 : 0), 1, 10) : 1;
+  // 7. Average mana value of nonland cards (commander excluded). 2.0 or lower scores 10; each +1 costs 3 points.
+  const sCurve = nonland ? clamp(10 - 3*(avg-2), 1, 10) : 0;
+
+  const W = {tutors:.15, draw:.15, interaction:.15, wincon:.20, mana:.15, commander:.10, curve:.10};
+  const S = {tutors:sTut, draw:sDraw, interaction:sInt, wincon:sWin, mana:sMana, commander:sCmd, curve:sCurve};
+  const total = Object.keys(W).reduce((a,k)=>a + W[k]*S[k], 0);
+  const power = round1(1 + 0.9*total);
+  const plural = (n,w) => `${n} ${w}${n===1?"":"s"}`;
+  const factors = [
+    {k:"tutors", label:"Tutors", v:L.tutor.length, d:"Cards that search your library for a nonland card.", cards:L.tutor},
+    {k:"draw", label:"Dedicated card draw", v:L.draw.length, d:"Repeatable draw, or spells that draw two or more.", cards:L.draw},
+    {k:"interaction", label:"Interaction / removal", v:L.removal.length, d:`Spot removal, counterspells and bounce, including ${plural(L.wipe.length,"board wipe")}${freeN?` and ${freeN} free`:""}.`, cards:L.removal},
+    {k:"wincon", label:"Win condition efficiency", v:round1(sWin), of:10, d:winWhy+".", cards:[...new Set([...r.combos.flatMap(c=>[c.a,c.b]), ...L.finisher])]},
+    {k:"mana", label:"Mana base consistency", v:round1(sMana), of:10, d:`${lands} lands${mdfc?` + ${mdfc} MDFC`:""} · ${L.ramp.length} ramp (${L.fast.length} fast) · ${nColors<=1?"mono-color, no fixing needed":`${fixerQty} of ${lands} lands fix ${nColors} colors`}.`, cards:L.ramp},
+    {k:"commander", label:"Commander impact", v:round1(sCmd), of:10, d:why.length ? why.join("; ")+"." : "No commander found.", cards:[]},
+    {k:"curve", label:"Average CMC", v:nonland ? avg.toFixed(2) : "–", d:`Across ${nonland} nonland cards, commander excluded.`, cards:[]}
+  ].map(f=>({...f, score:round1(S[f.k]), weight:W[f.k]}));
+  return {power, band:bandOf(power), factors, unresolved, avg};
+}
 
 /* ---------- parsing ---------- */
 function parseDeck(text){
@@ -321,9 +543,9 @@ function cleanName(s){
 }
 
 /* ---------- rating ---------- */
-function rate(text, cmdField, intent){
+function rate(text, cmdField, intent, retry){
   const {cards, commanders:foundCmds} = parseDeck(text);
-  const typed = cmdField.split(/[,;]| \+ |\n/).map(cleanCmd).filter(Boolean);
+  const typed = cmdField.split(/;| \+ |\n/).map(cleanCmd).filter(Boolean);
   const seen = new Set(); const cmds = [...foundCmds, ...typed].filter(c=>{ const k=norm(c); if (!k || seen.has(k)) return false; seen.add(k); return true; });
   const total = cards.reduce((a,c)=>a+c.qty,0) + cmds.filter(c=>!cards.some(x=>norm(x.name)===norm(c))).length;
   const keyset = new Set(); cards.forEach(c=>faceKeys(c.name).forEach(k=>keyset.add(k))); cmds.forEach(c=>faceKeys(c).forEach(k=>keyset.add(k)));
@@ -370,33 +592,80 @@ function rate(text, cmdField, intent){
   const power = tut.length*1 + fast.length*1.25 + free.length*1 + gc.length*0.75;
   const cedhSignals = [fast.length>=5, tut.length>=6, free.length>=4, combos.some(c=>c.early)].filter(Boolean).length;
 
+  // Power level needs every card looked up on Scryfall. Until then (or if Scryfall is down) use the built-in lists.
+  const names = [...cards.map(c=>c.name), ...cmds];
+  const pending = cards.length ? ensureCards(names, retry) : 0;
+  const pw = cards.length && !pending ? powerLevel({cards, cmds, combos}) : null;
+
   let rec_b = floor; const notes=[];
-  if (floor<=2){
+  if (pw){
+    rec_b = Math.max(floor, pw.band);
+    if (pw.band>floor) notes.push(`A power level of ${pw.power.toFixed(1)} is in the Bracket ${pw.band} range, above what the rules alone require (Bracket ${floor}).`);
+    else if (pw.band<floor) notes.push(`The power level (${pw.power.toFixed(1)}) reads like Bracket ${pw.band}, but the rules below keep the deck at Bracket ${floor} or higher.`);
+    if (intent==="exhibition" && floor===1 && rec_b===2){ rec_b=1; notes.push("Marked as theme first, so it's rated Bracket 1 (Exhibition)."); }
+    else if (intent==="exhibition" && floor===2 && rec_b===2) notes.push("Bracket 1 decks should avoid extra turns entirely; cut them to play at Exhibition.");
+    if (rec_b===5 && intent!=="cedh") notes.push("A power level of 9 or more is cEDH territory. Bracket 5 also means building for a competitive meta; if the deck isn't, call it Bracket 4.");
+    if (intent==="cedh" && rec_b===4){ rec_b=5; notes.push("Marked as tuned for competitive pods. Bracket 5 is about intent and metagame, not just card choices."); }
+    else if (floor===4 && rec_b===4 && cedhSignals>=3) notes.push("The list has several cEDH hallmarks (fast mana, dense tutors, free interaction, cheap combos). If you tune it for a competitive meta, call it Bracket 5.");
+    if (intent==="cedh" && rec_b<4) notes.push("Bracket 5 needs a Bracket 4-level list built for a competitive meta. By its cards, this deck isn't there yet.");
+    if (intent==="exhibition" && rec_b>=3) notes.push(`You chose theme first, but ${floor>=3?"the rules below":"its power level"} keep${floor>=3?"":"s"} the deck out of Bracket 1.`);
+  }
+  else if (floor<=2){
     if (tut.length>=4 || fast.length>=3 || free.length>=3 || power>=6){ rec_b=3; notes.push("No rule forces Bracket 3, but the tutors, fast mana or free spells make it play above a precon."); }
     else if (intent==="exhibition" && floor===1){ rec_b=1; }
     else if (intent==="exhibition" && floor===2){ rec_b=2; notes.push("Bracket 1 decks should avoid extra turns entirely; cut them to play at Exhibition."); }
     else rec_b=2;
   }
-  if (floor===4){
-    if (intent==="cedh") { rec_b=5; notes.push("Marked as tuned for competitive pods. Bracket 5 is about intent and metagame, not just card choices."); }
-    else if (cedhSignals>=3) notes.push("The list has several cEDH hallmarks (fast mana, dense tutors, free interaction, cheap combos). If you tune it for a competitive meta, call it Bracket 5.");
+  if (!pw){
+    if (floor===4){
+      if (intent==="cedh") { rec_b=5; notes.push("Marked as tuned for competitive pods. Bracket 5 is about intent and metagame, not just card choices."); }
+      else if (cedhSignals>=3) notes.push("The list has several cEDH hallmarks (fast mana, dense tutors, free interaction, cheap combos). If you tune it for a competitive meta, call it Bracket 5.");
+    }
+    if (intent==="cedh" && floor<4) notes.push("Bracket 5 needs a Bracket 4-legal list built for a competitive meta. By its cards, this deck isn't there yet.");
+    if (intent==="exhibition" && floor>=3) notes.push("You chose theme first, but the rules below keep the deck out of Bracket 1.");
   }
-  if (intent==="cedh" && floor<4) notes.push("Bracket 5 needs a Bracket 4-legal list built for a competitive meta. By its cards, this deck isn't there yet.");
-  if (intent==="exhibition" && floor>=3) notes.push("You chose theme first, but the rules below keep the deck out of Bracket 1.");
 
   // how to go down
   const down=[];
-  if (rec_b===3 && floor<=2) down.push("Cut some tutors, fast mana or free spells to play at Bracket 2.");
+  if (pw && rec_b>floor) down.push(`Its power level, not a rule, sets this bracket. To reach Bracket ${rec_b-1}, lower the strongest factors below: fewer tutors and fast mana, less efficient interaction or win conditions, or a higher curve.`);
+  if (!pw && rec_b===3 && floor<=2) down.push("Cut some tutors, fast mana or free spells to play at Bracket 2.");
   if (gc.length>3) down.push(`Cut ${gc.length-3} Game Changer${gc.length-3>1?"s":""} to reach Bracket 3, or all ${gc.length} for Bracket 2.`);
   else if (gc.length>0) down.push(`Cut ${gc.length===1?"the Game Changer":"all "+gc.length+" Game Changers"} to reach Bracket 2.`);
   if (mld.length) down.push(`Remove mass land denial: ${mld.map(esc).join(", ")}.`);
   if (chaining) down.push("Trim extra-turn cards (and the ways to recast them) so turns can't be chained.");
   combos.forEach(c=>down.push(`Break up ${esc(c.a)} + ${esc(c.b)} by cutting one piece${c.withCmd?" (the other is your commander)":""}.`));
 
-  return {cards,cmds,total,gc,mld,et,rec,tut,fast,free,combos,checks,floor,rec_b,notes,down,power,cedhSignals};
+  return {cards,cmds,total,gc,mld,et,rec,tut,fast,free,combos,checks,floor,rec_b,notes,down,power,cedhSignals,pw,pending};
 }
 
 /* ---------- render ---------- */
+function powerSection(r){
+  if (!r.pw){
+    const msg = lookupError
+      ? `<p class="status err">Couldn't reach Scryfall (${esc(lookupError)}), so there's no power level. The bracket uses the rules and built-in card lists only. <button class="linkbtn" onclick="run(true)">Try again</button></p>`
+      : `<p class="status">Looking up ${r.pending} card${r.pending===1?"":"s"} on Scryfall to work out the power level…</p>`;
+    return `<h2>Power level</h2>${msg}`;
+  }
+  const p = r.pw, B = TIERS[p.band];
+  const at = ((p.power-1)/9*100).toFixed(1);
+  const tile = f => `<div class="gauge"><div class="k">${f.label}<span class="w">${Math.round(f.weight*100)}%</span></div>
+    <div class="v">${f.v}${f.of?`<small> / ${f.of}</small>`:""}</div>
+    <div class="bar" title="Score ${f.score} / 10"><i style="width:${f.score*10}%"></i></div>
+    <div class="d">Score ${f.score} / 10. ${esc(f.d)}</div>
+    ${f.cards.length?`<details><summary>${f.cards.length} card${f.cards.length===1?"":"s"}</summary>${cardList(f.cards)}</details>`:""}</div>`;
+  return `<h2>Power level</h2>
+    <div class="power" style="--ptier:${B.color}">
+      <div class="pnum">${p.power.toFixed(1)}<small> / 10</small></div>
+      <p class="pline">Plays like <b style="color:${B.color}">Bracket ${p.band} · ${B.name}</b> by power alone.</p>
+    </div>
+    <div class="pscale" role="img" aria-label="Power level ${p.power} of 10">
+      ${[1,2,3,4,5].map(b=>`<span class="${b===p.band?"on":""}" style="background:${TIERS[b].color}"></span>`).join("")}<i style="left:${at}%"></i>
+    </div>
+    <div class="pticks"><span>1</span><span>4</span><span>6</span><span>7.5</span><span>9</span></div>
+    <div class="gauges factors" style="margin-top:14px">${p.factors.map(tile).join("")}</div>
+    ${p.unresolved.length?`<p class="hint" style="margin-top:8px">Scryfall didn't recognize ${p.unresolved.map(esc).join(", ")}, so ${p.unresolved.length===1?"it's":"they're"} left out of the power level.</p>`:""}`;
+}
+
 function render(r){
   const el = document.getElementById("result");
   if (!r.cards.length){ el.innerHTML = `<p class="label">No deck yet</p><p>Paste a decklist on the left, or load the example deck, then choose <b>Rate deck</b>.</p>`; el.style.removeProperty("--tier"); return; }
@@ -423,6 +692,7 @@ function render(r){
       <span>${r.total} cards${r.total!==100?` <span style="color:var(--warn)">(Commander decks are 100)</span>`:""}</span>
       ${deckUrl?`<span><a href="${esc(deckUrl)}" target="_blank" rel="noopener">Open deck ↗</a></span>`:""}
     </div>
+    ${powerSection(r)}
     ${r.notes.length?`<h2>Notes</h2><ul class="advice">${r.notes.map(n=>`<li>${n}</li>`).join("")}</ul>`:""}
     <h2>Bracket rules</h2>
     <div class="checks">
@@ -433,13 +703,13 @@ function render(r){
         </div>
         <span class="n">${c.n}</span></div>`).join("")}
     </div>
-    <h2>Power signals</h2>
+    ${r.pw?"":`<h2>Power signals</h2>
     <div class="gauges">
       ${gauge("Tutors",r.tut,8)}
       ${gauge("Fast mana",r.fast,8)}
       ${gauge("Free / cheap interaction",r.free,8)}
     </div>
-    <p class="hint" style="margin-top:8px">Sol Ring isn't counted as fast mana because nearly every deck runs it.</p>
+    <p class="hint" style="margin-top:8px">From built-in card lists. Sol Ring isn't counted as fast mana because nearly every deck runs it.</p>`}
     ${r.down.length?`<h2>To play at a lower bracket</h2><ul class="advice">${r.down.map(d=>`<li>${d}</li>`).join("")}</ul>`:""}
   `;
 }
@@ -447,7 +717,7 @@ function render(r){
 /* ---------- wiring ---------- */
 const $ = id => document.getElementById(id);
 function intent(){ return document.querySelector('input[name="intent"]:checked').value; }
-function run(){ const r = rate($("deck").value, $("commander").value, intent()); render(r); $("count").textContent = r.cards.length ? r.total+" cards" : ""; }
+function run(retry){ const r = rate($("deck").value, $("commander").value, intent(), retry===true); render(r); $("count").textContent = r.cards.length ? r.total+" cards" : ""; }
 function showUrl(){
   const u = $("deckurl").value.trim(); const out=$("urlout");
   if (!/^https?:\/\//i.test(u)){ out.innerHTML=""; return; }
@@ -456,7 +726,7 @@ function showUrl(){
 }
 function loadSample(){ $("deck").value=SAMPLE; $("commander").value=""; $("deckurl").value=SAMPLE_URL; $("intent-auto").checked=true; showUrl(); run(); }
 
-$("rate").addEventListener("click", run);
+$("rate").addEventListener("click", ()=>run(true));
 $("loadsample").addEventListener("click", loadSample);
 $("clear").addEventListener("click", ()=>{ $("deck").value=""; $("commander").value=""; $("deckurl").value=""; showUrl(); run(); });
 document.querySelectorAll('input[name="intent"]').forEach(i=>i.addEventListener("change", run));
