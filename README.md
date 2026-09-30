@@ -15,29 +15,34 @@ Paste a Magic: The Gathering Commander decklist and get a recommended bracket (1
 
 ## Power level (1–10)
 
-The page looks up every card on [Scryfall](https://scryfall.com/docs/api) and scores seven factors from 0 to 10:
+The page looks up every card on [Scryfall](https://scryfall.com/docs/api), scores eight factors from 0 to 10, and combines them with the formula from [CodingAce's EDH power level calculator](https://codingace.net/general/edh_power_level.html):
 
-| Factor | Weight | How it's scored |
+**Power Level = Mana Engine × 18% + Consistency × 18% + Win Pressure × 20% + Interaction × 14% + Resilience × 10% + Protection × 8% + Disruptive Pressure × 7% + Card Quality × 5%**
+
+The weights are CodingAce's. How each factor is scored from the cards is this site's own estimate:
+
+| Factor | Weight | Built from |
 | --- | --- | --- |
-| Tutors | 15% | Cards that search your library for a nonland card. 8+ scores 10. |
-| Dedicated card draw | 15% | Repeatable draw, or spells that draw two or more. 10+ scores 10. |
-| Interaction / removal | 15% | Spot removal, counterspells, bounce and board wipes (free spells count 1.5). 14+ scores 10. |
-| Win condition efficiency | 20% | Early two-card combo 10, late combo 7.5, otherwise finishers and alternate wins, adjusted for their cost and tutor support. |
-| Mana base consistency | 15% | Mana sources vs. what the curve needs, ramp (fast mana counts extra), and lands that fix the commander's colors. |
-| Commander impact | 10% | Known high-power commanders, combo pieces, Game Changers, card-advantage or mana engines, and a cheap cost. |
-| Average CMC | 10% | Nonland cards, commander excluded. 2.0 or lower scores 10; each +1 costs 3 points. |
+| Mana Engine | 18% | Curve (30%), land count and color fixing (25%), ramp (20%), fast mana (25%) |
+| Consistency | 18% | Dedicated card draw (40%), tutors (35%), synergy: commander impact and share of spells on the commander's creature types (25%) |
+| Win Pressure | 20% | Win condition efficiency (55%) and expected win turn (45%) |
+| Interaction | 14% | Removal, counterspells, bounce and board wipes. 18 answers score 10 |
+| Resilience | 10% | Recursion, repeatable token makers and draw engines |
+| Protection | 8% | Hexproof, indestructible, ward, phasing or protection, plus counterspells |
+| Disruptive Pressure | 7% | Taxes, locks, discard, theft and mass land denial aimed at opponents |
+| Card Quality | 5% | Game Changers, known staples, and the share of spells costing 2 or less |
 
-**Power level = 1 + 0.9 × (weighted total)**, which maps to a bracket:
+The result also lists the headline deck stats: tutors, dedicated card draw, interaction/removal, win condition efficiency, mana base consistency, commander impact and average CMC.
 
-| Power level | 1.0–3.9 | 4.0–5.9 | 6.0–7.4 | 7.5–8.9 | 9.0–10 |
+The power level maps to a bracket:
+
+| Power level | 1.0–3.9 | 4.0–5.9 | 6.0–6.9 | 7.0–7.9 | 8.0–10 |
 | --- | --- | --- | --- | --- | --- |
 | Bracket | 1 Exhibition | 2 Core | 3 Upgraded | 4 Optimized | 5 cEDH |
 
 The recommended bracket is the higher of the power level's bracket and the rules floor above, so the power level can raise a bracket but never lower it below what the rules require. You can also mark a deck as "theme first" (lets a Bracket 2 power level with no rule violations drop to Bracket 1) or "tuned for competitive pods" (turns Bracket 4 into Bracket 5).
 
 If Scryfall can't be reached, the page falls back to its built-in lists: tutors, fast mana and free interaction are shown as power signals and can move a deck up one bracket.
-
-Flagged cards link to [Scryfall](https://scryfall.com), commanders to [EDHREC](https://edhrec.com), and combos to [Commander Spellbook](https://commanderspellbook.com).
 
 ## How to use
 
@@ -46,7 +51,7 @@ Flagged cards link to [Scryfall](https://scryfall.com), commanders to [EDHREC](h
 
 ## Limits
 
-- Card draw, removal, tutor, ramp and finisher counts come from reading each card's rules text, so unusual wording can be missed or miscounted. The weights are a starting point, not an official formula. Edit `powerLevel()` in `index.html` to tune them.
+- Card draw, removal, tutor, ramp and finisher counts come from reading each card's rules text, so unusual wording can be missed or miscounted. Factor scoring and the bracket bands are estimates. Edit `POWER_WEIGHTS` and `powerLevel()` in `index.html` to tune them.
 - The power level needs an internet connection to reach Scryfall.
 - Mass land denial, extra-turn, combo and tutor detection uses built-in lists of well-known cards and may miss obscure ones. Use [Commander Spellbook's Find My Combos](https://commanderspellbook.com/find-my-combos/) for a full combo check.
 - Doesn't check the [banned list](https://magic.wizards.com/en/banned-restricted-list).
