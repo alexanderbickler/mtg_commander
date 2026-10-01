@@ -46,13 +46,19 @@ If Scryfall can't be reached, the page falls back to its built-in lists: tutors,
 
 ## How to use
 
-1. On [Moxfield](https://moxfield.com), open your deck's **More** menu → **Export** and copy the plain-text list (Archidekt and MTGO/Arena text exports work too).
-2. Paste it into the decklist box. The result updates as you type.
+There are three ways to get a deck in. None of them rates the deck until you choose **Rate deck**, so you can check the fields first.
+
+1. **Paste an Archidekt link** into the deck link box. The commander and decklist fill in automatically.
+2. **Moxfield (one click):** Moxfield blocks other websites from reading its decks, so pasting a Moxfield link can't load it directly. Instead, open **One-click import** on the page and drag the **Send to Rater** button to your bookmarks bar. On any Moxfield or Archidekt deck page, click the bookmark: it reads the deck in your own browser and opens this page with the commander and decklist filled in.
+3. **Paste the text export** (Moxfield: **More** → **Export** → plain text; Archidekt and MTGO/Arena exports work too) into the decklist box. A full list replaces both fields: a Commander section goes into the Commander box and the rest into the decklist. Sideboard and maybeboard sections are left out.
+
+Editing the fields after a rating shows a notice instead of re-rating; choose **Rate deck** again to update.
 
 ## Limits
 
 - Card draw, removal, tutor, ramp and finisher counts come from reading each card's rules text, so unusual wording can be missed or miscounted. Factor scoring and the bracket bands are estimates. Edit `POWER_WEIGHTS` and `powerLevel()` in `index.html` to tune them.
 - The power level needs an internet connection to reach Scryfall.
+- Deck import relies on Moxfield's and Archidekt's own deck data, which they can change at any time. If an import stops working, paste the text export instead.
 - Mass land denial, extra-turn, combo and tutor detection uses built-in lists of well-known cards and may miss obscure ones. Use [Commander Spellbook's Find My Combos](https://commanderspellbook.com/find-my-combos/) for a full combo check.
 - Doesn't check the [banned list](https://magic.wizards.com/en/banned-restricted-list).
 - When Wizards updates the Game Changers list, edit the `GAME_CHANGERS` array in `index.html`. The live list is on [Scryfall](https://scryfall.com/search?q=is%3Agamechanger).
