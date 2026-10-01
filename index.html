@@ -124,6 +124,11 @@ h2{font:700 17px/1.3 var(--display);letter-spacing:.03em;margin:26px 0 10px}
 .factors summary{cursor:pointer;color:var(--accent)}
 .status{font-size:14px;color:var(--muted);background:var(--sunk);border:1px solid var(--rule);border-radius:8px;padding:10px 12px;margin:0}
 .status.err{color:var(--bad);background:var(--bad-bg);border-color:transparent}
+#importmsg{margin-top:4px}
+.bm{font-size:14px}
+.bm summary{cursor:pointer;color:var(--accent);font-weight:600}
+.bm ol{margin:8px 0;padding-left:20px;display:grid;gap:6px}
+.bmbtn{display:inline-block;font:600 13px var(--body);background:var(--accent);color:var(--surface);border-radius:6px;padding:4px 10px;text-decoration:none;cursor:grab}
 .linkbtn{font:inherit;color:var(--accent);background:none;border:0;padding:0;text-decoration:underline;cursor:pointer}
 
 .advice{margin:0;padding-left:20px;display:grid;gap:6px;font-size:15px}
@@ -163,7 +168,17 @@ tbody th{font-weight:600;color:var(--muted);white-space:nowrap}
         <label class="label" for="deckurl">Deck link (Moxfield, Archidekt)</label>
         <input type="url" id="deckurl" placeholder="https://moxfield.com/decks/…">
         <div class="urlout" id="urlout"></div>
-        <p class="hint">This page can't read deck sites directly. On Moxfield, open the deck's <b>More</b> menu → <b>Export</b> → copy the plain-text list, then paste it below.</p>
+        <p class="status" id="importmsg" role="status" hidden></p>
+        <p class="hint">Paste an Archidekt link to fill in the deck. Moxfield blocks other sites from reading its decks, so for Moxfield use the one-click bookmark below, or the deck's <b>More</b> → <b>Export</b> → plain text.</p>
+        <details class="bm" id="bmsetup">
+          <summary>One-click import from Moxfield or Archidekt</summary>
+          <ol>
+            <li>Drag this button to your browser's bookmarks bar: <a class="bmbtn" id="bookmarklet" href="#">Send to Rater</a></li>
+            <li>Open any deck on Moxfield or Archidekt and click the bookmark.</li>
+            <li>This page opens with the commander and decklist filled in. Choose <b>Rate deck</b>.</li>
+          </ol>
+          <p class="hint">On a phone or tablet, <button class="linkbtn" id="copybm" type="button">copy the bookmark code</button> and save it as a bookmark's address. The bookmark only reads the deck you're viewing and sends it to this page.</p>
+        </details>
       </div>
       <div class="field">
         <label class="label" for="commander">Commander(s)</label>
@@ -734,7 +749,7 @@ function powerSection(r){
 
 function render(r){
   const el = document.getElementById("result");
-  if (!r.cards.length){ el.innerHTML = `<p class="label">No deck yet</p><p>Paste a decklist on the left, or load the example deck, then choose <b>Rate deck</b>.</p>`; el.style.removeProperty("--tier"); return; }
+  if (!r.cards.length){ el.innerHTML = `<p class="label">No deck yet</p><p>Paste a decklist or a deck link on the left, or load the example deck, then choose <b>Rate deck</b>.</p>`; el.style.removeProperty("--tier"); return; }
   const T = TIERS[r.rec_b];
   el.style.setProperty("--tier", T.color);
   const cmdLinks = r.cmds.map(c=>`${cardLink(c)} <a class="x" href="https://edhrec.com/commanders/${slug(c)}" target="_blank" rel="noopener">EDHREC ↗</a>`).join(" · ");
@@ -780,30 +795,186 @@ function render(r){
   `;
 }
 
+/* ---------- importing from deck sites ---------- */
+// Archidekt's deck JSON → {name, commanders, cards}. Also runs inside the bookmark, so it must not use anything outside itself.
+function parseArchidekt(d){
+  const cats = d.categories || [];
+  const outside = new Set(cats.filter(c=>c.includedInDeck===false).map(c=>c.name));   // Maybeboard, Sideboard…
+  const premier = new Set(cats.filter(c=>c.isPremier).map(c=>c.name));
+  const commanders = [], cards = [];
+  (d.cards || []).forEach(c=>{
+    const name = (c.card && c.card.oracleCard && c.card.oracleCard.name) || (c.card && c.card.name);
+    const in_ = c.categories || [];
+    if (!name || (in_.length && in_.every(x=>outside.has(x)))) return;
+    if (in_.some(x=>x==="Commander" || premier.has(x))) commanders.push(name);
+    else cards.push((c.quantity || 1) + " " + name);
+  });
+  return {name: d.name || "", commanders, cards};
+}
+
+// The "Send to Rater" bookmark. It runs on the deck site's own page, where that site lets the browser read the deck,
+// then opens this page with the deck in the address (#import=…). Must not use anything outside itself.
+function sendToRater(rater, parseArchidekt){
+  const href = location.href;
+  const mox = href.match(/moxfield\.com\/decks\/([\w-]+)/i), arch = href.match(/archidekt\.com\/decks\/(\d+)/i);
+  if (!mox && !arch){ alert("Open a Moxfield or Archidekt deck page, then click Send to Rater again."); return; }
+  const win = window.open("", "_blank");
+  const get = url => fetch(url, {headers:{Accept:"application/json"}}).then(r=>{ if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); });
+  (async()=>{
+    let deck;
+    if (mox){
+      let d;
+      try { d = await get("https://api2.moxfield.com/v3/decks/all/" + mox[1]); }
+      catch(e){ d = await get("https://api2.moxfield.com/v2/decks/all/" + mox[1]); }
+      const boards = d.boards || {commanders:{cards:d.commanders}, mainboard:{cards:d.mainboard}, companions:{cards:d.companions}};
+      const list = b => Object.values((boards[b] && boards[b].cards) || {});
+      deck = {name: d.name || "", commanders: list("commanders").map(c=>c.card.name),
+              cards: [...list("mainboard"), ...list("companions")].map(c=>c.quantity + " " + c.card.name)};
+    } else deck = parseArchidekt(await get(location.origin + "/api/decks/" + arch[1] + "/"));
+    if (!deck.cards.length && !deck.commanders.length) throw new Error("no cards found");
+    const url = rater + "#import=" + encodeURIComponent(JSON.stringify({v:1, src: mox ? "Moxfield" : "Archidekt", url: href.split(/[?#]/)[0], ...deck}));
+    if (win) win.location.href = url; else location.href = url;
+  })().catch(e=>{ if (win) win.close(); alert("Send to Rater couldn't read this deck (" + (e && e.message || e) + "). Use the site's Export → plain text instead."); });
+}
+const RATER_URL = location.href.split("#")[0];
+const BOOKMARKLET = "javascript:" + encodeURIComponent(`(${sendToRater})(${JSON.stringify(RATER_URL)},${parseArchidekt})`);
+
+const deckLink = u => {
+  const m = String(u).match(/^https?:\/\/(?:www\.)?(moxfield|archidekt)\.com\/decks\/([\w-]+)/i);
+  return m ? {site: m[1].toLowerCase()==="moxfield" ? "Moxfield" : "Archidekt", id: m[2]} : null;
+};
+function importMsg(html, kind){ const el = $("importmsg"); el.hidden = !html; el.className = "status" + (kind==="err" ? " err" : ""); el.innerHTML = html || ""; }
+const setupHint = `<button class="linkbtn" onclick="document.getElementById('bmsetup').open=true;document.getElementById('bmsetup').scrollIntoView({block:'nearest'})">Set up the Send to Rater bookmark</button>`;
+
+// Fill the fields from an imported deck. The data can come from a link anyone made, so only plain text goes into the inputs.
+function applyImport(p){
+  const str = (x, max=200) => String(x ?? "").replace(/[\r\n]+/g," ").slice(0, max);
+  const commanders = (Array.isArray(p.commanders) ? p.commanders : []).slice(0, 4).map(x=>str(x)).filter(Boolean);
+  const cards = (Array.isArray(p.cards) ? p.cards : []).slice(0, 400).map(x=>str(x)).filter(Boolean);
+  if (!commanders.length && !cards.length) throw new Error("the deck had no cards");
+  $("commander").value = commanders.join(" + ");
+  $("deck").value = cards.join("\n");
+  if (deckLink(p.url)) $("deckurl").value = str(p.url, 300);
+  lastImported = $("deckurl").value.trim();
+  showUrl();
+  const n = cards.reduce((a,l)=>a + (parseInt(l,10) || 1), 0) + commanders.length;
+  const src = p.src==="Archidekt" ? "Archidekt" : "Moxfield";
+  importMsg(`Imported ${p.name ? `“${esc(str(p.name,120))}” ` : ""}from ${src}: ${n} cards${commanders.length ? `, commander ${commanders.map(esc).join(" + ")}` : ", no commander found"}. Check the fields, then choose <b>Rate deck</b>.`);
+  $("count").textContent = n + " cards";
+  const el = $("result"); el.style.removeProperty("--tier");
+  rated = {deck:"", cmd:""};
+  el.innerHTML = `<p class="label ready">Deck imported</p><p>The commander and decklist are filled in from ${src}. Choose <b>Rate deck</b> to rate it.</p>`;
+}
+
+let lastImported = "", importTimer;
+async function importFromLink(){
+  const u = $("deckurl").value.trim(), link = deckLink(u);
+  if (!link || u===lastImported){ if (!link) importMsg(""); return; }
+  lastImported = u;
+  if (link.site==="Moxfield"){
+    importMsg(`Moxfield doesn't let other websites read its decks, so this page can't load the link by itself. <a href="${esc(u)}" target="_blank" rel="noopener">Open the deck ↗</a> and click your <b>Send to Rater</b> bookmark. ${setupHint}`);
+    return;
+  }
+  importMsg("Importing from Archidekt…");
+  try {
+    const res = await fetch(`https://archidekt.com/api/decks/${encodeURIComponent(link.id)}/`, {headers:{Accept:"application/json"}});
+    if (!res.ok) throw new Error(res.status===404 ? "deck not found or private" : "Archidekt answered " + res.status);
+    if ($("deckurl").value.trim()!==u) return;   // the link changed while we waited
+    applyImport({...parseArchidekt(await res.json()), src:"Archidekt", url:u});
+  } catch(e){
+    if ($("deckurl").value.trim()!==u) return;
+    lastImported = "";
+    importMsg(`Couldn't load this Archidekt deck (${esc(e.message || "network error")}). <a href="${esc(u)}" target="_blank" rel="noopener">Open the deck ↗</a> and click your <b>Send to Rater</b> bookmark, or paste its text export below. ${setupHint}`, "err");
+  }
+}
+function importFromHash(){
+  if (!location.hash.startsWith("#import=")) return;
+  try { applyImport(JSON.parse(decodeURIComponent(location.hash.slice(8)))); }
+  catch(e){ importMsg(`Couldn't read the imported deck (${esc(e.message)}). Paste the decklist below instead.`, "err"); }
+  history.replaceState(null, "", location.pathname + location.search);   // so a refresh doesn't import again
+}
+
 /* ---------- wiring ---------- */
 const $ = id => document.getElementById(id);
 function intent(){ return document.querySelector('input[name="intent"]:checked').value; }
-function run(retry){ const r = rate($("deck").value, $("commander").value, intent(), retry===true); render(r); $("count").textContent = r.cards.length ? r.total+" cards" : ""; }
+// The list being rated. It only changes when the user chooses Rate deck (or loads the example),
+// so typing, pasting or importing never re-rates on its own.
+let rated = {deck:"", cmd:""};
+function run(retry){ render(rate(rated.deck, rated.cmd, intent(), retry===true)); markStale(); }
+function rateNow(){ rated = {deck:$("deck").value, cmd:$("commander").value}; importMsg(""); run(true); }
+function updateCount(){
+  const {cards} = parseDeck($("deck").value);
+  const cmds = $("commander").value.split(/;| \+ |\n/).map(cleanCmd).filter(Boolean).filter(c=>!cards.some(x=>norm(x.name)===norm(c)));
+  const n = cards.reduce((a,c)=>a+c.qty,0) + cmds.length;
+  $("count").textContent = n ? n+" cards" : "";
+}
+// Tell the user when the fields no longer match what's rated.
+function markStale(){
+  updateCount();
+  const el = $("result"), stale = document.getElementById("stale");
+  const filled = $("deck").value.trim() || $("commander").value.trim();
+  if (!rated.deck.trim() && !rated.cmd.trim()){
+    if (filled && !el.querySelector(".ready")) { el.style.removeProperty("--tier"); el.innerHTML = `<p class="label ready">Ready to rate</p><p>Choose <b>Rate deck</b> to rate this list.</p>`; }
+    else if (!filled && el.querySelector(".ready")) render(rate("", "", intent()));
+    return;
+  }
+  const changed = $("deck").value!==rated.deck || $("commander").value!==rated.cmd;
+  if (changed && !stale) el.insertAdjacentHTML("afterbegin", `<p class="status" id="stale" style="margin-bottom:14px">The decklist or commander changed since this rating. Choose <b>Rate deck</b> to update it.</p>`);
+  else if (!changed && stale) stale.remove();
+}
+// Pasting a whole decklist replaces both fields: the commander goes to the Commander field and the rest to the Decklist.
+// Pasting a card or two inserts normally.
+function pasteDeck(text){
+  const lines = text.split(/\r?\n/).filter(l=>l.trim());
+  const {cards, commanders} = parseDeck(text);
+  if (lines.length<10 && !commanders.length) return false;
+  const cmdKeys = new Set(commanders.map(norm));
+  $("deck").value = cards.filter(c=>!cmdKeys.has(norm(c.name))).map(c=>c.qty+" "+c.name).join("\n");
+  if (commanders.length) $("commander").value = [...new Set(commanders)].join(" + ");
+  const n = cards.reduce((a,c)=>a+c.qty,0);
+  importMsg(`Filled in ${n} cards${commanders.length ? ` and commander ${commanders.map(esc).join(" + ")}` : ""} from the pasted list${commanders.length ? "" : ". No Commander section found, so check the Commander field"}. Choose <b>Rate deck</b> to rate it.`);
+  markStale();
+  return true;
+}
+const clip = e => (e.clipboardData || window.clipboardData)?.getData("text") || "";
 function showUrl(){
   const u = $("deckurl").value.trim(); const out=$("urlout");
   if (!/^https?:\/\//i.test(u)){ out.innerHTML=""; return; }
   const mox = u.match(/moxfield\.com\/decks\/([\w-]+)/i);
   out.innerHTML = `<a href="${esc(u)}" target="_blank" rel="noopener">Open deck ↗</a>` + (mox?`<a href="https://moxfield.com/decks/${esc(mox[1])}/primer" target="_blank" rel="noopener">Primer ↗</a>`:"");
 }
-function loadSample(){ $("deck").value=SAMPLE; $("commander").value=""; $("deckurl").value=SAMPLE_URL; $("intent-auto").checked=true; showUrl(); run(); }
+function loadSample(){ $("deck").value=SAMPLE; $("commander").value=""; $("deckurl").value=SAMPLE_URL; lastImported=SAMPLE_URL; $("intent-auto").checked=true; showUrl(); rateNow(); }
 
-$("rate").addEventListener("click", ()=>run(true));
+$("rate").addEventListener("click", rateNow);
 $("loadsample").addEventListener("click", loadSample);
-$("clear").addEventListener("click", ()=>{ $("deck").value=""; $("commander").value=""; $("deckurl").value=""; showUrl(); run(); });
+$("clear").addEventListener("click", ()=>{ $("deck").value=""; $("commander").value=""; $("deckurl").value=""; lastImported=""; rated={deck:"",cmd:""}; importMsg(""); showUrl(); run(); });
 document.querySelectorAll('input[name="intent"]').forEach(i=>i.addEventListener("change", run));
-$("deckurl").addEventListener("input", showUrl);
-let t; $("deck").addEventListener("input", ()=>{ clearTimeout(t); t=setTimeout(run, 350); });
-$("commander").addEventListener("input", ()=>{ clearTimeout(t); t=setTimeout(run, 350); });
+$("deckurl").addEventListener("input", ()=>{ showUrl(); clearTimeout(importTimer); importTimer = setTimeout(importFromLink, 400); });
+$("bookmarklet").href = BOOKMARKLET;
+$("bookmarklet").addEventListener("click", e=>{ e.preventDefault(); importMsg("Drag the <b>Send to Rater</b> button to your bookmarks bar, then click the bookmark while you're on a Moxfield or Archidekt deck page."); });
+$("copybm").addEventListener("click", async ()=>{
+  try { await navigator.clipboard.writeText(BOOKMARKLET); $("copybm").textContent = "Copied"; }
+  catch(e){ prompt("Copy this, then save it as a bookmark's address:", BOOKMARKLET); }
+});
+window.addEventListener("hashchange", importFromHash);
+$("deck").addEventListener("input", markStale);
+$("commander").addEventListener("input", markStale);
+$("deck").addEventListener("paste", e=>{ if (pasteDeck(clip(e))) e.preventDefault(); });
+$("commander").addEventListener("paste", e=>{
+  const text = clip(e);
+  if (pasteDeck(text)) { e.preventDefault(); return; }       // a whole list pasted into the wrong box
+  if (/\n|^\s*\d{1,2}\s*x?\s/i.test(text)){                  // "1 Name" lines: keep names only, one per partner
+    e.preventDefault();
+    $("commander").value = text.split(/\r?\n/).map(cleanCmd).filter(Boolean).join(" + ");
+    markStale();
+  }
+});
 
 (function init(){
   // Start fresh on every visit. Remove any draft saved by earlier versions of this page.
   try{ localStorage.removeItem("cbr-draft"); }catch(e){}
   run();
+  importFromHash();
 })();
 </script>
 
