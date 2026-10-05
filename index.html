@@ -197,9 +197,7 @@ button.primary:hover{background:var(--accent);filter:brightness(1.1)}
 .cap span{display:block;min-width:28px;padding:3px 9px;background:var(--cf);color:var(--cg);font:700 12px/1 var(--display);text-align:center;clip-path:polygon(6px 0,calc(100% - 6px) 0,100% 50%,calc(100% - 6px) 100%,6px 100%,0 50%)}
 .cap-W{--cf:#F4EDC8;--cg:#3A3220;--cs:#6B5B33} .cap-U{--cf:#AACDEA;--cg:#0F2F4D;--cs:#2E5677} .cap-B{--cf:#BDB3AF;--cg:#1B1616;--cs:#4A403C}
 .cap-R{--cf:#EFA083;--cg:#4A1406;--cs:#7A3015} .cap-G{--cf:#9DCBA0;--cg:#133A1B;--cs:#2D5A33} .cap-C{--cf:#D0C9C4;--cg:#2A2623;--cs:#57504B}
-.pip .cap span{min-width:20px;padding:2px 6px;font-size:11px}
-.pips{display:inline-flex;flex-wrap:wrap;gap:4px 6px}
-.pip{display:inline-flex;align-items:center;gap:3px}
+.pips{display:inline-flex;flex-wrap:wrap;gap:3px}
 .pips .mana{width:22px;height:22px}
 .nopip{display:inline-block;min-width:22px;text-align:center;color:var(--muted)}
 
@@ -728,13 +726,11 @@ function powerLevel(r){
 }
 
 /* ---------- mana base ---------- */
-// Colors in the usual order, each with its basic land, the letter this site labels its gem with, and a spoken name.
+// Colors in the usual order, each with its basic land and a spoken name.
 const COLORS = ["W","U","B","R","G","C"];
 const BASIC_OF = {W:"Plains", U:"Island", B:"Swamp", R:"Mountain", G:"Forest", C:"Wastes"};
-const CODE = {W:"P", U:"I", B:"S", R:"M", G:"F", C:"C"};
 const COLOR_NAME = {W:"white", U:"blue", B:"black", R:"red", G:"green", C:"colorless"};
 const gemSvg = c => `<svg class="mana" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><use href="#m-${c}"/></svg>`;
-const capTag = c => `<b class="cap cap-${c}" aria-hidden="true"><span>${CODE[c]}</span></b>`;
 const orList = a => a.length<2 ? a.join("") : a.slice(0,-1).join(", ") + " or " + a[a.length-1];
 function basicColor(name){
   const n = name.toLowerCase().replace(/^snow-covered\s+/, "").trim();
@@ -951,7 +947,7 @@ function manaSection(m){
   if (!m.total && !m.mdfc) return `<h3 class="sec">Mana base</h3><p class="hint">No lands found in this list.</p>`;
   const shown = COLORS.filter(c=>c!=="C" || m.showC);
   const tile = c => `<li class="land${m.basic[c] ? "" : " zero"}">
-      <span class="gem">${gemSvg(c)}${capTag(c)}</span>
+      <span class="gem">${gemSvg(c)}</span>
       <span class="ln">${c==="C" ? "Wastes" : BASIC_OF[c]}</span>
       <span class="lv">${m.basic[c]}<span class="sr-only"> basic</span></span>
       ${m.withData ? `<span class="ls">${m.sources[c]} land${m.sources[c]===1?"":"s"} make${m.sources[c]===1?"s":""} ${COLOR_NAME[c]}</span>` : ""}
@@ -959,7 +955,7 @@ function manaSection(m){
   // One row per color combination, so lands that make the same colors share one row of gems.
   const groups = [];
   m.nonbasic.forEach(e=>{ const k = e.colors.join("") + "|" + e.note; let g = groups.find(x=>x.k===k); if (!g) groups.push(g = {k, colors:e.colors, label:e.label, note:e.note, lands:[]}); g.lands.push(e); });
-  const group = g => `<li class="lgroup"><span class="pips" role="img" aria-label="${esc(g.label)}">${g.colors.length ? g.colors.map(c=>`<span class="pip">${gemSvg(c)}${capTag(c)}</span>`).join("") : `<span class="nopip" aria-hidden="true">–</span>`}</span>
+  const group = g => `<li class="lgroup"><span class="pips" role="img" aria-label="${esc(g.label)}">${g.colors.length ? g.colors.map(c=>gemSvg(c)).join("") : `<span class="nopip" aria-hidden="true">–</span>`}</span>
       <span class="lnames">${g.lands.map(e=>`<span>${cardLink(e.name)}${e.qty>1?` ×${e.qty}`:""}</span>`).join("")}${g.note?`<span class="x">${g.note}</span>`:""}</span></li>`;
   return `<h3 class="sec">Mana base</h3>
     <p class="hint">${m.total} land${m.total===1?"":"s"}: ${m.basicTotal} basic, ${m.nonbasicTotal} nonbasic${m.mdfc?`, plus ${m.mdfc} spell${m.mdfc===1?"":"s"} that can be played as a land`:""}.</p>
