@@ -3,17 +3,24 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="Rate a Magic: The Gathering Commander deck on the official 1-5 bracket system.">
-<title>Commander Bracket Rater</title><link rel="preconnect" href="https://fonts.googleapis.com">
+<meta name="description" content="Rate a Magic: The Gathering Commander deck on the 1-5 bracket system, with a 1-10 power level and a mana base breakdown.">
+<title>Commander Bracket Rater</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Source+Sans+3:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Source+Sans+3:wght@400;600;700&family=JetBrains+Mono:wght@500;600&display=swap">
 <style>
+/* Theme: an original "arcane grimoire" look (parchment by day, midnight and gold by night).
+   It deliberately avoids Wizards of the Coast's protected marks: no mana symbols, logos, planeswalker,
+   guild or set symbols, card frames, card backs or the Beleren typeface. The color gems are original drawings.
+   Every text/background pair below meets WCAG 2.2 AA contrast (4.5:1 text, 3:1 borders and focus). */
 :root{
   color-scheme:light;
-  --ground:#EDF0F4; --surface:#FFFFFF; --sunk:#F5F7FA; --ink:#161A22; --muted:#5A6373; --rule:#D5DAE2;
-  --accent:#24477A; --accent-soft:#E2E9F4;
-  --t1:#5F7F4B; --t2:#2F6E9C; --t3:#A7771C; --t4:#B8472A; --t5:#7A2E4F;
-  --ok:#2F7A4A; --ok-bg:#E3F1E8; --warn:#9A6A0E; --warn-bg:#FBF0D9; --bad:#A93A26; --bad-bg:#F9E3DD;
+  --ground:#ECE3CF; --ground-top:#F5EEDD; --surface:#FBF6EA; --sunk:#F3ECDC; --ink:#2B2219; --muted:#5E5041;
+  --rule:#DCCFB2; --field:#8A7759; --frame:#C4AE82; --gold:#A9853A; --shadow:rgba(70,48,12,.22);
+  --accent:#7C2D12; --accent-ink:#FBF6EA; --accent-soft:#F1E3D3; --focus:#0B4F9C;
+  --t1:#3B6A2A; --t2:#1D5889; --t3:#835505; --t4:#A0321A; --t5:#6A2A5E; --tier-ink:#FBF6EA;
+  --ok:#2C6A3D; --ok-bg:#E2EEDB; --warn:#7F5205; --warn-bg:#F5E8C6; --bad:#9A2B19; --bad-bg:#F6DED3;
+  --spin-w:#C2A646; --spin-u:#3F7FB8; --spin-b:#4D4444; --spin-r:#C4532F; --spin-g:#3F8A4C;
   --display:"Cinzel", "Trajan Pro", Georgia, serif;
   --body:"Source Sans 3", "Segoe UI", system-ui, sans-serif;
   --mono:"JetBrains Mono", ui-monospace, Consolas, monospace;
@@ -21,155 +28,274 @@
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
     color-scheme:dark;
-    --ground:#11141A; --surface:#191E26; --sunk:#141820; --ink:#E6E9EF; --muted:#98A1B0; --rule:#2B323D;
-    --accent:#93B4E6; --accent-soft:#1F2B3D;
-    --t1:#8DB277; --t2:#6FA8D6; --t3:#DDAA48; --t4:#E77B5C; --t5:#C9709A;
-    --ok:#7CC796; --ok-bg:#17291F; --warn:#E3B45A; --warn-bg:#2C2414; --bad:#EE8B74; --bad-bg:#321B16;
+    --ground:#110F17; --ground-top:#1D1928; --surface:#1C1925; --sunk:#16131E; --ink:#EFE7D6; --muted:#B8AD9A;
+    --rule:#332D3F; --field:#7F7493; --frame:#4D4260; --gold:#C9A04E; --shadow:rgba(0,0,0,.55);
+    --accent:#E5BF6B; --accent-ink:#1C1925; --accent-soft:#2E2718; --focus:#8EC5FF;
+    --t1:#9DCC86; --t2:#8DC1EC; --t3:#E8BF63; --t4:#F39476; --t5:#DA9DC9; --tier-ink:#16131E;
+    --ok:#8FD3A2; --ok-bg:#15281C; --warn:#E8BF63; --warn-bg:#2C2412; --bad:#F39C87; --bad-bg:#341A1B;
+    --spin-w:#F4EDC8; --spin-u:#AACDEA; --spin-b:#BDB3AF; --spin-r:#EFA083; --spin-g:#9DCBA0;
   }
 }
 :root[data-theme="dark"]{
   color-scheme:dark;
-  --ground:#11141A; --surface:#191E26; --sunk:#141820; --ink:#E6E9EF; --muted:#98A1B0; --rule:#2B323D;
-  --accent:#93B4E6; --accent-soft:#1F2B3D;
-  --t1:#8DB277; --t2:#6FA8D6; --t3:#DDAA48; --t4:#E77B5C; --t5:#C9709A;
-  --ok:#7CC796; --ok-bg:#17291F; --warn:#E3B45A; --warn-bg:#2C2414; --bad:#EE8B74; --bad-bg:#321B16;
+  --ground:#110F17; --ground-top:#1D1928; --surface:#1C1925; --sunk:#16131E; --ink:#EFE7D6; --muted:#B8AD9A;
+  --rule:#332D3F; --field:#7F7493; --frame:#4D4260; --gold:#C9A04E; --shadow:rgba(0,0,0,.55);
+  --accent:#E5BF6B; --accent-ink:#1C1925; --accent-soft:#2E2718; --focus:#8EC5FF;
+  --t1:#9DCC86; --t2:#8DC1EC; --t3:#E8BF63; --t4:#F39476; --t5:#DA9DC9; --tier-ink:#16131E;
+  --ok:#8FD3A2; --ok-bg:#15281C; --warn:#E8BF63; --warn-bg:#2C2412; --bad:#F39C87; --bad-bg:#341A1B;
+  --spin-w:#F4EDC8; --spin-u:#AACDEA; --spin-b:#BDB3AF; --spin-r:#EFA083; --spin-g:#9DCBA0;
 }
 *{box-sizing:border-box}
-body{margin:0}
-img{max-width:100%}
+html{background:var(--ground)}
+body{margin:0;min-height:100vh;color:var(--ink);font:16px/1.55 var(--body);
+  background:radial-gradient(120% 60% at 50% 0%, var(--ground-top), var(--ground) 70%) no-repeat, var(--ground)}
+body::before{content:"";display:block;height:4px;background:linear-gradient(90deg,var(--spin-w),var(--spin-u),var(--spin-b),var(--spin-r),var(--spin-g))}
+img,svg{max-width:100%}
 [hidden]{display:none!important}
-body{background:var(--ground);color:var(--ink);font:16px/1.5 var(--body)}
-.wrap{max-width:1200px;margin:0 auto;padding-inline:20px;padding-block:28px 56px}
-a{color:var(--accent);text-underline-offset:2px}
-a:focus-visible,button:focus-visible,textarea:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-header{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:12px 24px;margin-bottom:22px}
-h1{font:700 clamp(26px,4vw,36px)/1.1 var(--display);letter-spacing:.02em;margin:0;text-wrap:balance}
-.sub{color:var(--muted);margin:6px 0 0;max-width:62ch}
-.toplinks{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:14px}
+.sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.skip{position:absolute;left:12px;top:-80px;z-index:20;background:var(--accent);color:var(--accent-ink);padding:10px 16px;border-radius:8px;font-weight:700;text-decoration:none}
+.skip:focus{top:12px}
+.wrap{max-width:1200px;margin:0 auto;padding-inline:16px;padding-block:24px 48px}
+a{color:var(--accent);text-underline-offset:3px;text-decoration-thickness:1px}
+a:hover{text-decoration-thickness:2px}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px;border-radius:4px}
+#main:focus,#result-title:focus{outline:none}
+
+/* masthead */
+.masthead{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:14px 24px;margin-bottom:22px}
+.gems{display:flex;gap:8px;margin-bottom:10px}
+.gem{display:inline-flex;flex-direction:column;align-items:center;gap:3px}
+.gems .mana{width:28px;height:28px}
+h1{font:700 clamp(28px,4.2vw,40px)/1.1 var(--display);letter-spacing:.03em;margin:0;text-wrap:balance}
+.sub{color:var(--muted);margin:8px 0 0;max-width:64ch}
+.toplinks{display:flex;flex-wrap:wrap;gap:4px 18px;font-size:15px}
+.toplinks a,.urlout a,.links a{display:inline-block;padding:3px 0}
+
+/* panels: a double-ruled frame */
 .grid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:20px;align-items:start}
-@media (max-width:900px){.grid{grid-template-columns:1fr}}
-.panel{background:var(--surface);border:1px solid var(--rule);border-radius:10px;padding:18px}
-.label{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
-.field{display:grid;gap:6px;margin-bottom:14px}
-input[type=text],input[type=url],textarea{width:100%;font:15px/1.45 var(--body);color:var(--ink);background:var(--sunk);border:1px solid var(--rule);border-radius:6px;padding:9px 11px}
-textarea{font:13px/1.5 var(--mono);min-height:340px;resize:vertical}
-.hint{font-size:13px;color:var(--muted);margin:0}
-.urlout{font-size:14px;display:flex;flex-wrap:wrap;gap:4px 12px}
-fieldset{border:0;padding:0;margin:0 0 14px;display:grid;gap:6px}
+@media (max-width:900px){.grid{grid-template-columns:minmax(0,1fr)}}
+.panel{position:relative;background:var(--surface);border:1px solid var(--frame);border-radius:14px;padding:22px 20px 20px;box-shadow:0 12px 30px -18px var(--shadow)}
+.panel::before{content:"";position:absolute;inset:5px;border:1px solid var(--rule);border-radius:10px;pointer-events:none}
+.ptitle{display:flex;align-items:center;gap:12px;margin:0 0 18px;font:700 15px/1.2 var(--display);letter-spacing:.14em;text-transform:uppercase;text-align:center}
+.ptitle::before,.ptitle::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--gold))}
+.ptitle::after{background:linear-gradient(90deg,var(--gold),transparent)}
+.sec{display:flex;align-items:center;gap:10px;font:700 18px/1.3 var(--display);letter-spacing:.03em;margin:30px 0 12px}
+.sec::before{content:"";flex:none;width:8px;height:8px;transform:rotate(45deg);background:var(--gold)}
+/* each section heading holds a button that expands or collapses the section */
+.tog{flex:1;display:flex;align-items:center;gap:10px;min-height:36px;padding:2px 4px;margin:0 -4px;border:0;border-radius:6px;background:none;color:inherit;font:inherit;letter-spacing:inherit;text-align:left;cursor:pointer}
+.tog:hover{background:var(--accent-soft)}
+.tog .chev{flex:none;width:9px;height:9px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg);transition:transform .15s}
+.tog[aria-expanded="false"] .chev{transform:rotate(-45deg)}
+.tog .togword{margin-left:auto;font:600 13px var(--body);letter-spacing:.02em;color:var(--muted)}
+
+/* form */
+.label{display:block;font-size:13px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+.field{display:grid;gap:6px;margin-bottom:16px}
+input[type=text],input[type=url],textarea{width:100%;font:16px/1.45 var(--body);color:var(--ink);background:var(--sunk);border:1px solid var(--field);border-radius:8px;padding:10px 12px}
+input::placeholder,textarea::placeholder{color:var(--muted);opacity:1}
+textarea{font:14px/1.55 var(--mono);min-height:340px;resize:vertical}
+.hint{font-size:14px;color:var(--muted);margin:0}
+.urlout{font-size:15px;display:flex;flex-wrap:wrap;gap:0 14px}
+fieldset{border:0;padding:0;margin:0 0 16px;display:grid;gap:8px;min-width:0}
 legend{padding:0}
-.radio{display:flex;gap:8px;align-items:flex-start;font-size:14px;cursor:pointer}
-.radio input{margin-top:4px}
-.radio small{display:block;color:var(--muted)}
-.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-button{font:600 14px var(--body);border-radius:6px;padding:8px 14px;cursor:pointer;border:1px solid var(--rule);background:var(--surface);color:var(--ink)}
-button.primary{background:var(--accent);border-color:var(--accent);color:var(--surface)}
-.count{font:500 12px var(--mono);color:var(--muted);margin-left:auto}
+.radio{display:flex;gap:10px;align-items:flex-start;font-size:15px;cursor:pointer}
+.radio input{margin-top:4px;width:18px;height:18px;accent-color:var(--accent);flex:none}
+.radio small{display:block;color:var(--muted);font-size:14px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+button{font:600 15px var(--body);min-height:42px;border-radius:8px;padding:8px 16px;cursor:pointer;border:1px solid var(--field);background:var(--surface);color:var(--ink)}
+button:hover{background:var(--accent-soft)}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);letter-spacing:.02em}
+button.primary:hover{background:var(--accent);filter:brightness(1.1)}
+.count{font:500 13px var(--mono);color:var(--muted);margin-left:auto}
+.linkbtn{font:inherit;min-height:0;color:var(--accent);background:none;border:0;padding:0;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.linkbtn:hover{background:none;text-decoration-thickness:2px}
+.status{font-size:15px;color:var(--ink);background:var(--sunk);border:1px solid var(--rule);border-left:4px solid var(--gold);border-radius:8px;padding:10px 12px;margin:0}
+.status.err{color:var(--bad);background:var(--bad-bg);border-color:var(--bad)}
+#importmsg{margin-top:4px}
+.bm{font-size:15px}
+.bm summary{cursor:pointer;color:var(--accent);font-weight:600;padding:3px 0}
+.bm ol{margin:8px 0;padding-left:22px;display:grid;gap:8px}
+.bmbtn{display:inline-block;font:600 14px var(--body);background:var(--accent);color:var(--accent-ink);border-radius:8px;padding:5px 12px;text-decoration:none;cursor:grab}
 
 /* verdict */
-.verdict{display:grid;grid-template-columns:auto 1fr;gap:6px 20px;align-items:center}
-.numeral{font:700 88px/0.9 var(--display);color:var(--tier);min-width:1ch;text-align:center}
+.verdict{display:grid;grid-template-columns:auto 1fr;gap:8px 20px;align-items:center}
+.seal{width:100px;height:100px;display:grid;place-items:center;border-radius:50%;border:4px double var(--tier);background:radial-gradient(circle at 50% 40%,var(--surface) 55%,var(--sunk));font:700 60px/1 var(--display);color:var(--tier)}
 .vname{font:700 26px/1.15 var(--display);margin:0;color:var(--tier)}
-.vline{margin:4px 0 0;max-width:60ch}
-.ladder{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin:18px 0 6px}
-.rung{border-radius:4px;padding:8px 6px 7px;background:var(--sunk);border:1px solid var(--rule);font-size:12px;text-align:center;color:var(--muted);position:relative}
-.rung b{display:block;font:700 15px var(--display);color:var(--ink)}
-.rung.on{background:var(--tier);border-color:var(--tier);color:var(--surface)}
-.rung.on b{color:var(--surface)}
-.rung.floor::after{content:"rules floor";position:absolute;left:0;right:0;bottom:-18px;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
-.rung.on.floor::after{content:"rules floor"}
-.deckmeta{font-size:14px;color:var(--muted);margin:24px 0 0;display:flex;flex-wrap:wrap;gap:4px 16px}
+.vline{margin:6px 0 0;max-width:60ch}
+.ladder{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin:20px 0 8px}
+.rung{border-radius:6px;padding:8px 4px 7px;background:var(--sunk);border:1px solid var(--rule);font-size:12px;text-align:center;color:var(--muted);position:relative}
+.rung b{display:block;font:700 16px var(--display);color:var(--ink)}
+.rung.on{background:var(--tier);border-color:var(--tier);color:var(--tier-ink)}
+.rung.on b{color:var(--tier-ink)}
+.rung.floor{border:2px dashed var(--muted)}
+.floornote{font-size:14px;color:var(--muted);margin:0}
+.deckmeta{font-size:15px;color:var(--muted);margin:16px 0 0;display:flex;flex-wrap:wrap;gap:4px 18px}
 
-h2{font:700 17px/1.3 var(--display);letter-spacing:.03em;margin:26px 0 10px}
-.checks{display:grid;gap:0;border-top:1px solid var(--rule)}
-.check{display:grid;grid-template-columns:auto 1fr auto;gap:4px 12px;align-items:start;padding:10px 0;border-bottom:1px solid var(--rule)}
-.pill{font:700 11px/1 var(--body);letter-spacing:.06em;text-transform:uppercase;padding:5px 8px;border-radius:99px;white-space:nowrap;margin-top:2px}
+/* rules checks */
+.checks{display:grid;border-top:1px solid var(--rule)}
+.check{display:grid;grid-template-columns:auto 1fr auto;gap:4px 12px;align-items:start;padding:12px 0;border-bottom:1px solid var(--rule)}
+.pill{font:700 12px/1 var(--body);letter-spacing:.05em;text-transform:uppercase;padding:6px 9px;border-radius:99px;white-space:nowrap;margin-top:1px;border:1px solid transparent}
 .pill.ok{background:var(--ok-bg);color:var(--ok)} .pill.warn{background:var(--warn-bg);color:var(--warn)} .pill.bad{background:var(--bad-bg);color:var(--bad)}
-.check h3{font-size:15px;margin:0}
-.check p{margin:2px 0 0;font-size:14px;color:var(--muted)}
-.check .n{font:500 14px var(--mono);color:var(--ink);padding-top:2px}
-.cards{display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:6px;font-size:14px}
-.cards a{white-space:nowrap}
-.cards .x{color:var(--muted);font-size:12px}
+.check h4{font-size:16px;margin:0}
+.check p{margin:2px 0 0;font-size:15px;color:var(--muted)}
+.check .n{font:500 15px var(--mono);color:var(--ink);padding-top:2px}
+.cards{display:flex;flex-wrap:wrap;gap:2px 14px;margin-top:6px;font-size:15px}
+.cards a{white-space:nowrap;display:inline-block;padding:3px 0}
+.x{color:var(--muted);font-size:13px}
 
-.gauges{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
-.gauge{background:var(--sunk);border:1px solid var(--rule);border-radius:8px;padding:10px 12px}
-.gauge .k{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
-.gauge .v{font:500 24px var(--mono);font-variant-numeric:tabular-nums}
-.gauge .bar{height:5px;border-radius:3px;background:var(--rule);margin-top:6px;overflow:hidden}
-.gauge .bar i{display:block;height:100%;background:var(--accent)}
-.gauge .cards{font-size:13px}
+/* tiles */
+.gauges{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.gauge{background:var(--sunk);border:1px solid var(--rule);border-radius:10px;padding:12px}
+.gauge .k{display:flex;justify-content:space-between;gap:8px;margin:0;font:700 13px/1.3 var(--body);letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.gauge .v{margin:2px 0 0;font:600 26px var(--mono);font-variant-numeric:tabular-nums}
+.gauge .v small{font:600 14px var(--body);color:var(--muted)}
+.gauge .bar{height:6px;border-radius:3px;background:var(--rule);margin-top:6px;overflow:hidden}
+.gauge .bar i{display:block;height:100%;background:var(--accent);border-radius:3px}
+.gauge .d{font-size:14px;color:var(--muted);margin:6px 0 0}
+.gauge .w{white-space:nowrap;font:600 12px var(--mono);letter-spacing:0;text-transform:none}
+.gauge details{margin-top:6px;font-size:14px}
+.gauge summary{cursor:pointer;color:var(--accent);padding:3px 0}
+.gauge .cards{font-size:14px}
 
 /* power level */
 .power{display:grid;grid-template-columns:auto 1fr;gap:6px 18px;align-items:center}
-.pnum{font:700 48px/1 var(--display);color:var(--ptier,var(--ink));font-variant-numeric:tabular-nums}
-.pnum small{font:600 16px var(--body);color:var(--muted)}
-.pline{margin:0;font-size:15px}
-.pscale{position:relative;display:grid;grid-template-columns:3fr 2fr 1fr 1fr 2fr;gap:2px;margin:14px 0 4px;height:8px}
+.pnum{font:700 52px/1 var(--display);color:var(--ptier,var(--ink));font-variant-numeric:tabular-nums}
+.pnum small{font:600 17px var(--body);color:var(--muted)}
+.pline{margin:0;font-size:16px}
+.pscale{position:relative;display:grid;grid-template-columns:3fr 2fr 1fr 1fr 2fr;gap:2px;margin:16px 0 4px;height:8px}
 .pscale span{border-radius:2px;opacity:.35}
 .pscale span.on{opacity:1}
-.pscale i{position:absolute;top:-4px;width:3px;height:16px;border-radius:2px;background:var(--ink);transform:translateX(-50%)}
-.pticks{display:grid;grid-template-columns:3fr 2fr 1fr 1fr 2fr;gap:2px;font:500 11px var(--mono);color:var(--muted)}
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-top:14px}
-.stat{border-left:3px solid var(--accent);padding:2px 0 2px 10px}
-.stat .k{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
-.stat .v{font:500 20px var(--mono);font-variant-numeric:tabular-nums}
-.stat .v small{font:600 12px var(--body);color:var(--muted)}
-.stat .d{font-size:12px;color:var(--muted)}
+.pscale i{position:absolute;top:-5px;width:4px;height:18px;border-radius:2px;background:var(--ink);transform:translateX(-50%);box-shadow:0 0 0 2px var(--surface)}
+.pticks{display:grid;grid-template-columns:3fr 2fr 1fr 1fr 2fr;gap:2px;font:500 12px var(--mono);color:var(--muted)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:12px;margin:16px 0 0}
+.stat{border-left:3px solid var(--gold);padding:2px 0 2px 10px}
+.stat dt{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.stat dd{margin:0}
+.stat .v{font:600 21px var(--mono);font-variant-numeric:tabular-nums}
+.stat .v small{font:600 13px var(--body);color:var(--muted)}
+.stat .d{font-size:13px;color:var(--muted)}
 .formula{margin-top:0}
-.factors .v small{font:600 13px var(--body);color:var(--muted)}
-.factors .d{font-size:13px;color:var(--muted);margin-top:4px}
-.factors .k{display:flex;justify-content:space-between;gap:8px}
-.factors .w{white-space:nowrap;font:500 11px var(--mono);color:var(--muted);letter-spacing:0;text-transform:none}
-.factors details{margin-top:4px;font-size:13px}
-.factors summary{cursor:pointer;color:var(--accent)}
-.status{font-size:14px;color:var(--muted);background:var(--sunk);border:1px solid var(--rule);border-radius:8px;padding:10px 12px;margin:0}
-.status.err{color:var(--bad);background:var(--bad-bg);border-color:transparent}
-#importmsg{margin-top:4px}
-.bm{font-size:14px}
-.bm summary{cursor:pointer;color:var(--accent);font-weight:600}
-.bm ol{margin:8px 0;padding-left:20px;display:grid;gap:6px}
-.bmbtn{display:inline-block;font:600 13px var(--body);background:var(--accent);color:var(--surface);border-radius:6px;padding:4px 10px;text-decoration:none;cursor:grab}
-.linkbtn{font:inherit;color:var(--accent);background:none;border:0;padding:0;text-decoration:underline;cursor:pointer}
 
-.advice{margin:0;padding-left:20px;display:grid;gap:6px;font-size:15px}
-.ref{margin-top:26px}
+/* mana base */
+.mana{flex:none;vertical-align:middle}
+.lands{list-style:none;margin:12px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:10px}
+.land{display:grid;grid-template-columns:auto 1fr;grid-template-areas:"icon name" "icon num" "src src";column-gap:10px;align-items:center;background:var(--sunk);border:1px solid var(--rule);border-radius:10px;padding:10px 12px}
+.land .gem{grid-area:icon}
+.land .mana{width:40px;height:40px}
+.land.zero .mana{opacity:.45}
+.land .ln{grid-area:name;font:700 14px var(--display);letter-spacing:.03em}
+.land .lv{grid-area:num;font:600 28px/1.05 var(--mono);font-variant-numeric:tabular-nums}
+.land .ls{grid-area:src;font-size:13px;color:var(--muted);margin-top:6px}
+.subsec{font:700 15px var(--body);margin:18px 0 6px}
+.lgroups{list-style:none;padding:0;margin:8px 0 0;display:grid;gap:8px}
+.lgroup{display:grid;grid-template-columns:minmax(0,auto) minmax(0,1fr);gap:6px 16px;align-items:center;background:var(--sunk);border:1px solid var(--rule);border-radius:10px;padding:8px 12px}
+.lnames{display:flex;flex-wrap:wrap;gap:0 14px;font-size:15px}
+.lnames a{display:inline-block;padding:3px 0}
+@media (max-width:620px){.lgroup{grid-template-columns:minmax(0,1fr)}}
+/* letter captions wear their gem's colors: fill, outline and glyph color, in a hex-ended tag */
+.cap{display:inline-block;padding:1.5px;line-height:0;background:var(--cs);clip-path:polygon(7px 0,calc(100% - 7px) 0,100% 50%,calc(100% - 7px) 100%,7px 100%,0 50%)}
+.cap span{display:block;min-width:28px;padding:3px 9px;background:var(--cf);color:var(--cg);font:700 12px/1 var(--display);text-align:center;clip-path:polygon(6px 0,calc(100% - 6px) 0,100% 50%,calc(100% - 6px) 100%,6px 100%,0 50%)}
+.cap-W{--cf:#F4EDC8;--cg:#3A3220;--cs:#6B5B33} .cap-U{--cf:#AACDEA;--cg:#0F2F4D;--cs:#2E5677} .cap-B{--cf:#BDB3AF;--cg:#1B1616;--cs:#4A403C}
+.cap-R{--cf:#EFA083;--cg:#4A1406;--cs:#7A3015} .cap-G{--cf:#9DCBA0;--cg:#133A1B;--cs:#2D5A33} .cap-C{--cf:#D0C9C4;--cg:#2A2623;--cs:#57504B}
+.pip .cap span{min-width:20px;padding:2px 6px;font-size:11px}
+.pips{display:inline-flex;flex-wrap:wrap;gap:4px 6px}
+.pip{display:inline-flex;align-items:center;gap:3px}
+.pips .mana{width:22px;height:22px}
+.nopip{display:inline-block;min-width:22px;text-align:center;color:var(--muted)}
+
+/* loading */
+.loading{display:grid;justify-items:center;text-align:center;gap:10px;padding:44px 12px 36px}
+.spinner{width:68px;height:68px;border-radius:50%;
+  background:conic-gradient(transparent 0 10%, var(--spin-w) 10% 28%, var(--spin-u) 28% 46%, var(--spin-b) 46% 64%, var(--spin-r) 64% 82%, var(--spin-g) 82% 100%);
+  -webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 10px),#000 calc(100% - 9px));
+  mask:radial-gradient(farthest-side,transparent calc(100% - 10px),#000 calc(100% - 9px));
+  animation:spin 1.1s linear infinite}
+@keyframes spin{to{transform:rotate(1turn)}}
+.ltitle{font:700 21px/1.3 var(--display);margin:6px 0 0}
+.lsub{margin:0;color:var(--muted)}
+.loading progress{width:min(320px,100%);height:10px;accent-color:var(--accent)}
+
+/* reference */
+.advice{margin:0;padding-left:22px;display:grid;gap:6px;font-size:16px}
+.ref{margin-top:28px}
 .tablewrap{overflow-x:auto}
-table{border-collapse:collapse;width:100%;min-width:680px;font-size:14px}
-th,td{border-bottom:1px solid var(--rule);padding:8px 10px;text-align:left;vertical-align:top}
-thead th{font:700 14px var(--display)}
-thead th span{display:block;font:600 11px var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+table{border-collapse:collapse;width:100%;min-width:680px;font-size:15px}
+caption{text-align:left}
+th,td{border-bottom:1px solid var(--rule);padding:9px 10px;text-align:left;vertical-align:top}
+thead th{font:700 15px var(--display)}
+thead th span{display:block;font:600 12px var(--body);letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
 tbody th{font-weight:600;color:var(--muted);white-space:nowrap}
-.links{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px 22px;margin-top:10px}
+.links{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px 22px;margin-top:10px}
 .links a{font-weight:600}
-.links p{margin:2px 0 0;font-size:13px;color:var(--muted)}
-.foot{font-size:13px;color:var(--muted);margin-top:22px;max-width:80ch}
-@media (max-width:520px){.numeral{font-size:64px}.rung{font-size:10px}.rung b{font-size:13px}}
+.links p{margin:2px 0 0;font-size:14px;color:var(--muted)}
+.foot{font-size:14px;color:var(--muted);margin-top:22px;max-width:80ch}
+footer{border-top:1px solid var(--rule);margin-top:30px}
+code{font:14px var(--mono)}
+
+@media (max-width:520px){
+  .seal{width:76px;height:76px;font-size:44px}
+  .rung{font-size:11px;padding-inline:2px}.rung b{font-size:14px}
+  .check{grid-template-columns:1fr auto}.check .pill{grid-column:1 / -1;justify-self:start}
+}
 @media (prefers-reduced-motion:no-preference){.gauge .bar i{transition:width .4s ease}}
+@media (prefers-reduced-motion:reduce){.spinner{animation:none}.tog .chev{transition:none}}
+@media (forced-colors:active){
+  .rung.on{border:3px solid Highlight}
+  .status,.gauge,.land,.lgroup{border:1px solid CanvasText}
+  .pscale i{background:CanvasText}
+}
 </style>
 </head>
 <body>
+<a class="skip" href="#main">Skip to main content</a>
+
+<!-- Original color gems (not Wizards' mana symbols): white sun, blue drop, black skull, red flame, green tree, colorless diamond. -->
+<svg class="sprite" width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <path id="m-hex" d="M16 1.9 28.4 9v14L16 30.1 3.6 23V9z"/>
+    <symbol id="m-W" viewBox="0 0 32 32"><use href="#m-hex" fill="#F4EDC8" stroke="#6B5B33" stroke-width="1.3" stroke-linejoin="round"/>
+      <circle cx="16" cy="16" r="4.3" fill="#3A3220"/>
+      <path stroke="#3A3220" stroke-width="2" stroke-linecap="round" d="M16 7.4v2.4M16 22.2v2.4M7.4 16h2.4M22.2 16h2.4M9.9 9.9l1.7 1.7M20.4 20.4l1.7 1.7M9.9 22.1l1.7-1.7M20.4 11.6l1.7-1.7"/></symbol>
+    <symbol id="m-U" viewBox="0 0 32 32"><use href="#m-hex" fill="#AACDEA" stroke="#2E5677" stroke-width="1.3" stroke-linejoin="round"/>
+      <path fill="#0F2F4D" d="M16 7.2c3.9 5 6.4 8.4 6.4 11.6a6.4 6.4 0 0 1-12.8 0c0-3.2 2.5-6.6 6.4-11.6z"/>
+      <path fill="none" stroke="#AACDEA" stroke-width="1.5" stroke-linecap="round" d="M12.9 18.9a3.2 3.2 0 0 0 2.3 3"/></symbol>
+    <symbol id="m-B" viewBox="0 0 32 32"><use href="#m-hex" fill="#BDB3AF" stroke="#4A403C" stroke-width="1.3" stroke-linejoin="round"/>
+      <path fill="#1B1616" d="M16 7.6c-4.6 0-7.8 3.1-7.8 7.2 0 2.4 1.1 4.1 2.7 5V22a1.2 1.2 0 0 0 1.2 1.2h1.3v-2.1h1.6v2.1h2v-2.1h1.6v2.1H20a1.2 1.2 0 0 0 1.2-1.2v-2.2c1.6-.9 2.6-2.6 2.6-5 0-4.1-3.2-7.2-7.8-7.2z"/>
+      <g fill="#BDB3AF"><circle cx="12.9" cy="15" r="2"/><circle cx="19.1" cy="15" r="2"/><path d="M16 17.4l-1.2 2.1h2.4z"/></g></symbol>
+    <symbol id="m-R" viewBox="0 0 32 32"><use href="#m-hex" fill="#EFA083" stroke="#7A3015" stroke-width="1.3" stroke-linejoin="round"/>
+      <path fill="#4A1406" d="M16.6 6.6c.5 3.1 2.9 4.8 4.4 7.1 1.4 2.1 1.7 4.8.3 7a6.1 6.1 0 0 1-11-2.9c-.2-2.4.9-4.2 2.3-5.6.1 1.6.7 2.7 1.7 3.2-.6-3.1.3-6.2 2.3-8.8z"/>
+      <path fill="#EFA083" d="M16.3 15.6c.6 1.3 2.1 2.1 2.1 3.8a2.3 2.3 0 0 1-4.6.2c0-1.1.5-1.9 1.2-2.5.1.6.4 1 .8 1.2-.1-.9 0-1.8.5-2.7z"/></symbol>
+    <symbol id="m-G" viewBox="0 0 32 32"><use href="#m-hex" fill="#9DCBA0" stroke="#2D5A33" stroke-width="1.3" stroke-linejoin="round"/>
+      <g fill="#133A1B"><circle cx="16" cy="11.1" r="4.3"/><circle cx="11.8" cy="14.6" r="3.8"/><circle cx="20.2" cy="14.6" r="3.8"/><circle cx="16" cy="16" r="3.9"/><path d="M14.7 17.6h2.6v4.4l2.5 1.8h-7.6l2.5-1.8z"/></g></symbol>
+    <symbol id="m-C" viewBox="0 0 32 32"><use href="#m-hex" fill="#D0C9C4" stroke="#57504B" stroke-width="1.3" stroke-linejoin="round"/>
+      <path fill="none" stroke="#2A2623" stroke-width="2.2" stroke-linejoin="round" d="M16 8.6l6.4 7.4-6.4 7.4-6.4-7.4z"/><circle cx="16" cy="16" r="1.6" fill="#2A2623"/></symbol>
+  </defs>
+</svg>
 
 <div class="wrap">
-  <header>
+  <header class="masthead">
     <div>
+      <div class="gems" aria-hidden="true"><span class="gem"><svg class="mana" viewBox="0 0 32 32" focusable="false"><use href="#m-W"/></svg><b class="cap cap-W"><span>P</span></b></span><span class="gem"><svg class="mana" viewBox="0 0 32 32" focusable="false"><use href="#m-U"/></svg><b class="cap cap-U"><span>I</span></b></span><span class="gem"><svg class="mana" viewBox="0 0 32 32" focusable="false"><use href="#m-B"/></svg><b class="cap cap-B"><span>S</span></b></span><span class="gem"><svg class="mana" viewBox="0 0 32 32" focusable="false"><use href="#m-R"/></svg><b class="cap cap-R"><span>M</span></b></span><span class="gem"><svg class="mana" viewBox="0 0 32 32" focusable="false"><use href="#m-G"/></svg><b class="cap cap-G"><span>F</span></b></span></div>
       <h1>Commander Bracket Rater</h1>
-      <p class="sub">Paste a decklist and get a bracket (1–5) based on Wizards' official rules (Game Changers, mass land denial, chained extra turns and two-card combos) plus a 1–10 power level built from eight weighted factors: mana engine, consistency, win pressure, interaction, resilience, protection, disruption and card quality.</p>
+      <p class="sub">Paste a decklist or a deck link and get a bracket (1–5) based on Wizards' published rules (Game Changers, mass land denial, chained extra turns and two-card combos), a 1–10 power level built from eight weighted factors, and a breakdown of the mana base.</p>
     </div>
-    <nav class="toplinks" aria-label="Resources">
-      <a href="https://moxfield.com/" target="_blank" rel="noopener">Moxfield ↗</a>
-      <a href="https://scryfall.com/search?q=is%3Agamechanger&order=name" target="_blank" rel="noopener">Game Changers on Scryfall ↗</a>
-      <a href="https://commanderspellbook.com/find-my-combos/" target="_blank" rel="noopener">Commander Spellbook ↗</a>
+    <nav class="toplinks" aria-label="Deck tools">
+      <a href="https://moxfield.com/" target="_blank" rel="noopener">Moxfield<span class="ext" aria-hidden="true"> ↗</span><span class="sr-only"> (opens in a new tab)</span></a>
+      <a href="https://scryfall.com/search?q=is%3Agamechanger&order=name" target="_blank" rel="noopener">Game Changers on Scryfall<span class="ext" aria-hidden="true"> ↗</span><span class="sr-only"> (opens in a new tab)</span></a>
+      <a href="https://commanderspellbook.com/find-my-combos/" target="_blank" rel="noopener">Commander Spellbook<span class="ext" aria-hidden="true"> ↗</span><span class="sr-only"> (opens in a new tab)</span></a>
     </nav>
   </header>
 
+  <main id="main" tabindex="-1">
   <div class="grid">
-    <section class="panel" aria-label="Deck input">
+    <section class="panel" aria-labelledby="deck-title">
+      <h2 class="ptitle" id="deck-title">Your deck</h2>
       <div class="field">
         <label class="label" for="deckurl">Deck link (Moxfield, Archidekt)</label>
-        <input type="url" id="deckurl" placeholder="https://moxfield.com/decks/…">
+        <input type="url" id="deckurl" placeholder="https://archidekt.com/decks/…" aria-describedby="deckurl-hint">
         <div class="urlout" id="urlout"></div>
         <p class="status" id="importmsg" role="status" hidden></p>
-        <p class="hint">Paste an Archidekt link to fill in the deck. Moxfield blocks other sites from reading its decks, so for Moxfield use the one-click bookmark below, or the deck's <b>More</b> → <b>Export</b> → plain text.</p>
+        <p class="hint" id="deckurl-hint">Paste an Archidekt link to fill in the deck. Moxfield blocks other sites from reading its decks, so for Moxfield use the one-click bookmark below, or the deck's <b>More</b> → <b>Export</b> → plain text.</p>
         <details class="bm" id="bmsetup">
           <summary>One-click import from Moxfield or Archidekt</summary>
           <ol>
@@ -177,16 +303,18 @@ tbody th{font-weight:600;color:var(--muted);white-space:nowrap}
             <li>Open any deck on Moxfield or Archidekt and click the bookmark.</li>
             <li>This page opens with the commander and decklist filled in. Choose <b>Rate deck</b>.</li>
           </ol>
-          <p class="hint">On a phone or tablet, <button class="linkbtn" id="copybm" type="button">copy the bookmark code</button> and save it as a bookmark's address. The bookmark only reads the deck you're viewing and sends it to this page.</p>
+          <p class="hint">Can't drag, or on a phone or tablet? <button class="linkbtn" id="copybm" type="button">Copy the bookmark code</button> and save it as a bookmark's address. The bookmark only reads the deck you're viewing and sends it to this page.</p>
         </details>
       </div>
       <div class="field">
         <label class="label" for="commander">Commander(s)</label>
-        <input type="text" id="commander" placeholder="Name only. Separate partners with + or ;. Found automatically if the list has a Commander section">
+        <input type="text" id="commander" placeholder="e.g. Cosmic Spider-Man" aria-describedby="cmd-hint">
+        <p class="hint" id="cmd-hint">Name only. Separate partners with + or ;. Filled in automatically when the list has a Commander section.</p>
       </div>
       <div class="field">
         <label class="label" for="deck">Decklist</label>
-        <textarea id="deck" spellcheck="false"></textarea>
+        <textarea id="deck" spellcheck="false" aria-describedby="deck-hint"></textarea>
+        <p class="hint" id="deck-hint">One card per line, like "1 Sol Ring". Pasting a full export replaces the list and moves a Commander section into the Commander box.</p>
       </div>
       <fieldset>
         <legend class="label">How is this deck played?</legend>
@@ -195,51 +323,60 @@ tbody th{font-weight:600;color:var(--muted);white-space:nowrap}
         <label class="radio"><input type="radio" name="intent" id="intent-cedh" value="cedh"><span>Tuned for competitive pods<small>Allows Bracket 5 (cEDH) if the list is Bracket 4.</small></span></label>
       </fieldset>
       <div class="row">
-        <button class="primary" id="rate">Rate deck</button>
-        <button id="loadsample">Load example deck</button>
-        <button id="clear">Clear</button>
+        <button type="button" class="primary" id="rate">Rate deck</button>
+        <button type="button" id="loadsample">Load example deck</button>
+        <button type="button" id="clear">Clear</button>
         <span class="count" id="count"></span>
       </div>
     </section>
 
-    <section class="panel" id="result" aria-live="polite"></section>
+    <section class="panel" id="result-panel" aria-labelledby="result-title">
+      <h2 class="ptitle" id="result-title" tabindex="-1">The verdict</h2>
+      <div id="result"></div>
+    </section>
   </div>
 
-  <section class="ref">
-    <h2>The five brackets</h2>
-    <div class="tablewrap panel" style="padding:4px 8px">
+  <section class="ref" aria-labelledby="brackets-title">
+    <h2 class="sec" id="brackets-title">The five brackets</h2>
+    <div class="tablewrap panel" style="padding:8px 10px" tabindex="0" role="region" aria-label="The five brackets table, scrolls sideways on small screens">
       <table>
-        <thead><tr><th></th>
-          <th style="color:var(--t1)">1 · Exhibition<span>Theme over power</span></th>
-          <th style="color:var(--t2)">2 · Core<span>Precon-level</span></th>
-          <th style="color:var(--t3)">3 · Upgraded<span>Tuned, strong synergy</span></th>
-          <th style="color:var(--t4)">4 · Optimized<span>High power, anything goes</span></th>
-          <th style="color:var(--t5)">5 · cEDH<span>Tournament meta</span></th></tr></thead>
+        <caption class="sr-only">What each bracket allows, and the power levels this site maps to each one</caption>
+        <thead><tr><th scope="col"><span class="sr-only">Rule</span></th>
+          <th scope="col" style="color:var(--t1)">1 · Exhibition<span>Theme over power</span></th>
+          <th scope="col" style="color:var(--t2)">2 · Core<span>Precon-level</span></th>
+          <th scope="col" style="color:var(--t3)">3 · Upgraded<span>Tuned, strong synergy</span></th>
+          <th scope="col" style="color:var(--t4)">4 · Optimized<span>High power, anything goes</span></th>
+          <th scope="col" style="color:var(--t5)">5 · cEDH<span>Tournament meta</span></th></tr></thead>
         <tbody>
-          <tr><th>Game Changers</th><td>None</td><td>None</td><td>Up to 3</td><td>Any</td><td>Any</td></tr>
-          <tr><th>Mass land denial</th><td>No</td><td>No</td><td>No</td><td>Allowed</td><td>Allowed</td></tr>
-          <tr><th>Extra turns</th><td>Avoid</td><td>Not chained</td><td>Not chained</td><td>Allowed</td><td>Allowed</td></tr>
-          <tr><th>2-card infinite combos</th><td>No</td><td>No</td><td>Not early game</td><td>Allowed</td><td>Allowed</td></tr>
-          <tr><th>Tutors</th><td colspan="5">No hard limit since the October 2025 update, but many tutors make a deck play above its bracket.</td></tr>
-          <tr><th>Power level<br><small>(this site, 1–10)</small></th><td>1.0–3.9</td><td>4.0–5.9</td><td>6.0–6.9</td><td>7.0–7.9</td><td>8.0–10</td></tr>
+          <tr><th scope="row">Game Changers</th><td>None</td><td>None</td><td>Up to 3</td><td>Any</td><td>Any</td></tr>
+          <tr><th scope="row">Mass land denial</th><td>No</td><td>No</td><td>No</td><td>Allowed</td><td>Allowed</td></tr>
+          <tr><th scope="row">Extra turns</th><td>Avoid</td><td>Not chained</td><td>Not chained</td><td>Allowed</td><td>Allowed</td></tr>
+          <tr><th scope="row">2-card infinite combos</th><td>No</td><td>No</td><td>Not early game</td><td>Allowed</td><td>Allowed</td></tr>
+          <tr><th scope="row">Tutors</th><td colspan="5">No hard limit since the October 2025 update, but many tutors make a deck play above its bracket.</td></tr>
+          <tr><th scope="row">Power level<br><small>(this site, 1–10)</small></th><td>1.0–3.9</td><td>4.0–5.9</td><td>6.0–6.9</td><td>7.0–7.9</td><td>8.0–10</td></tr>
         </tbody>
       </table>
     </div>
 
-    <h2>Where to check your deck</h2>
+    <h2 class="sec">Where to check your deck</h2>
     <div class="links">
-      <div><a href="https://magic.wizards.com/en/news/announcements/commander-brackets-beta-update-february-9-2026" target="_blank" rel="noopener">Official bracket update (Feb 2026) ↗</a><p>Wizards' latest changes, including Farewell and Biorhythm joining the Game Changers.</p></div>
-      <div><a href="https://scryfall.com/search?q=is%3Agamechanger&order=name" target="_blank" rel="noopener">Game Changers list ↗</a><p>Scryfall keeps the live official list.</p></div>
-      <div><a href="https://moxfield.com/" target="_blank" rel="noopener">Moxfield ↗</a><p>Build and export decks. Moxfield also shows its own bracket estimate on each deck.</p></div>
-      <div><a href="https://archidekt.com/" target="_blank" rel="noopener">Archidekt ↗</a><p>Another deck builder. Its text export works here too.</p></div>
-      <div><a href="https://commanderspellbook.com/find-my-combos/" target="_blank" rel="noopener">Commander Spellbook: Find My Combos ↗</a><p>Paste your full list to find every combo, including ones this page doesn't know about.</p></div>
-      <div><a href="https://edhrec.com/" target="_blank" rel="noopener">EDHREC ↗</a><p>Common cards and strategies for your commander.</p></div>
-      <div><a href="https://magic.wizards.com/en/banned-restricted-list" target="_blank" rel="noopener">Banned &amp; restricted list ↗</a><p>Check legality. This rater doesn't check bans.</p></div>
+      <div><a href="https://magic.wizards.com/en/news/announcements/commander-brackets-beta-update-february-9-2026" target="_blank" rel="noopener">Official bracket update (Feb 2026)<span class="ext" aria-hidden="true"> ↗</span><span class="sr-only"> (opens in a new tab)</span></a><p>Wizards' latest changes, including Farewell and Biorhythm joining the Game Changers.</p></div>
+      <div><a href="https://scryfall.com/search?q=is%3Agamechanger&order=name" target="_blank" rel="noopener">Game Changers list<span class="ext" aria-hidden="true"> ↗</span><span class="sr-only"> (opens in a new tab)</span></a><p>Scryfall keeps the live official list.</p></div>
+      <div><a href="https://moxfield.com/" target="_blank" rel="noopener">Moxfield<span class="ext" aria-hidden="true"> ↗</span><span class="sr-only"> (opens in a new tab)</span></a><p>Build and export decks. Moxfield also shows its own bracket estimate on each deck.</p></div>
+      <div><a href="https://archidekt.com/" target="_blank" rel="noopener">Archidekt<span class="ext" aria-hidden="true"> ↗</span><span class="sr-only"> (opens in a new tab)</span></a><p>Another deck builder. Paste a deck link or its text export here.</p></div>
+      <div><a href="https://commanderspellbook.com/find-my-combos/" target="_blank" rel="noopener">Commander Spellbook: Find My Combos<span class="ext" aria-hidden="true"> ↗</span><span class="sr-only"> (opens in a new tab)</span></a><p>Paste your full list to find every combo, including ones this page doesn't know about.</p></div>
+      <div><a href="https://edhrec.com/" target="_blank" rel="noopener">EDHREC<span class="ext" aria-hidden="true"> ↗</span><span class="sr-only"> (opens in a new tab)</span></a><p>Common cards and strategies for your commander.</p></div>
+      <div><a href="https://magic.wizards.com/en/banned-restricted-list" target="_blank" rel="noopener">Banned &amp; restricted list<span class="ext" aria-hidden="true"> ↗</span><span class="sr-only"> (opens in a new tab)</span></a><p>Check legality. This rater doesn't check bans.</p></div>
     </div>
-    <p class="foot">How the rating works: the hard rules set the lowest bracket the deck can be in (the <i>rules floor</i>). The power level can only raise it. The page looks up every card on <a href="https://scryfall.com/docs/api" target="_blank" rel="noopener">Scryfall</a> and scores eight factors from 0 to 10, then combines them with the formula from <a href="https://codingace.net/general/edh_power_level.html" target="_blank" rel="noopener">CodingAce's EDH power level calculator</a>: <code>Mana Engine × 18% + Consistency × 18% + Win Pressure × 20% + Interaction × 14% + Resilience × 10% + Protection × 8% + Disruptive Pressure × 7% + Card Quality × 5%</code>. The table above turns that into a bracket. How each factor is scored from the cards is this site's own estimate. Draw, removal, tutor, ramp and finisher detection reads each card's rules text, so unusual wording can be missed or miscounted. If Scryfall can't be reached, the page falls back to its built-in lists of tutors, fast mana and free interaction. The Game Changers list matches the February 2026 update (53 cards). Mass land denial, extra-turn and combo detection uses built-in lists of well-known cards, so it may miss obscure ones. Always talk it over with your playgroup before the game.</p>
-    <p class="foot">Commander Bracket Rater is unofficial Fan Content permitted under the <a href="https://company.wizards.com/en/legal/fancontentpolicy" target="_blank" rel="noopener">Fan Content Policy</a>. Not approved or endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.</p>
+    <p class="foot">How the rating works: the hard rules set the lowest bracket the deck can be in (the <i>rules floor</i>). The power level can only raise it. The page looks up every card on <a href="https://scryfall.com/docs/api" target="_blank" rel="noopener">Scryfall<span class="ext" aria-hidden="true"> ↗</span><span class="sr-only"> (opens in a new tab)</span></a> and scores eight factors from 0 to 10, then combines them with the formula from <a href="https://codingace.net/general/edh_power_level.html" target="_blank" rel="noopener">CodingAce's EDH power level calculator<span class="ext" aria-hidden="true"> ↗</span><span class="sr-only"> (opens in a new tab)</span></a>: <code>Mana Engine × 18% + Consistency × 18% + Win Pressure × 20% + Interaction × 14% + Resilience × 10% + Protection × 8% + Disruptive Pressure × 7% + Card Quality × 5%</code>. The table above turns that into a bracket. How each factor is scored from the cards is this site's own estimate. Draw, removal, tutor, ramp and finisher detection reads each card's rules text, so unusual wording can be missed or miscounted. Land counts use the colors Scryfall lists for each land; fetch lands count toward the basic land types they can find. If Scryfall can't be reached, the page falls back to its built-in lists of tutors, fast mana and free interaction. The Game Changers list matches the February 2026 update (53 cards). Mass land denial, extra-turn and combo detection uses built-in lists of well-known cards, so it may miss obscure ones. Always talk it over with your playgroup before the game.</p>
   </section>
+  </main>
+
+  <footer>
+    <p class="foot">Commander Bracket Rater is unofficial Fan Content permitted under the <a href="https://company.wizards.com/en/legal/fancontentpolicy" target="_blank" rel="noopener">Fan Content Policy<span class="ext" aria-hidden="true"> ↗</span><span class="sr-only"> (opens in a new tab)</span></a>. Not approved/endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC. Magic: The Gathering is a trademark of Wizards of the Coast LLC; it's named here only to describe what this free tool rates. The color gems, theme and layout are original artwork, not Wizards' mana symbols or card designs.</p>
+  </footer>
 </div>
+<div id="announce" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
 
 <script>
 const SAMPLE = "Commander\n1 Cosmic Spider-Man\n\nDeck\n1 Agent Venom\n1 Amazing Acrobatics\n1 Anti-Venom, Horrifying Healer\n1 Araña, Heart of the Spider\n1 Arcane Signet\n1 Aunt May\n1 Bagel and Schmear\n1 Command Tower\n1 Costume Closet\n1 Daily Bugle Building\n1 Damage Control Crew\n1 Exotic Orchard\n1 Fabled Passage\n5 Forest\n1 Glacial Fortress\n1 Grow Extra Arms\n1 Guy in the Chair\n1 Gwenom, Remorseless\n1 Hinterland Harbor\n3 Island\n1 Kapow!\n1 Mary Jane Watson\n1 Miles Morales // Ultimate Spider-Man\n1 Mystic Monastery\n1 Ominous Asylum\n1 Origin of Spider-Man\n1 Path of Ancestry\n1 Peter Parker // Amazing Spider-Man\n1 Peter Parker's Camera\n5 Plains\n1 Prairie Stream\n1 Radioactive Spider\n1 Razorverge Thicket\n1 Rent Is Due\n1 Romantic Rendezvous\n1 SP//dr, Piloted by Peni\n1 Savage Lands\n1 Savage Mansion\n1 Scarlet Spider, Ben Reilly\n1 Scarlet Spider, Kaine\n1 Scattered Groves\n1 School Daze\n1 Scorched Geyser\n1 Scout the City\n1 Silk, Web Weaver\n1 Skyward Spider\n1 Sol Ring\n1 Spectacular Spider-Man\n1 Spectacular Tactics\n1 Spider-Bot\n1 Spider-Byte, Web Warden\n1 Spider-Gwen, Free Spirit\n1 Spider-Ham, Peter Porker\n1 Spider-Man India\n1 Spider-Man No More\n1 Spider-Man Noir\n1 Spider-Man, Brooklyn Visionary\n1 Spider-Man, Miles Morales\n1 Spider-Man, To the Rescue\n1 Spider-Man, Web-Slinger\n1 Spider-Punk\n1 Spider-Rex, Daring Dino\n1 Spider-UK\n1 Spider-Verse\n1 Spider-Woman, Secret Agent\n1 Spiders-Man, Heroic Horde\n1 Sudden Strike\n1 Sun-Spider, Nimble Webber\n1 Sunpetal Grove\n1 Superior Spider-Man\n2 Swamp\n1 Syncopate\n1 Terramorphic Expanse\n1 The Clone Saga\n1 The Death of Gwen Stacy\n1 Thriving Bluff\n1 Thriving Heath\n1 Thriving Isle\n1 Thriving Moor\n1 Thwip!\n1 University Campus\n1 Villainous Wrath\n1 Web Up\n1 Web-Warriors\n1 Whoosh!\n1 Wisecrack\n1 With Great Power . . .\n1 Wraith, Vicious Vigilante";
@@ -341,7 +478,7 @@ const M = { gc:mapOf(GAME_CHANGERS), mld:mapOf(MLD), et:mapOf(EXTRA_TURNS), eng:
 
 /* ---------- card data (Scryfall) ---------- */
 const CARD_DATA = new Map(); // norm(name) -> Scryfall card, or null when Scryfall doesn't know the name
-let lookupBusy = false, lookupError = "";
+let lookupBusy = false, lookupError = "", lookupNames = [];   // lookupNames: the names in the current lookup, for the progress bar
 const sleep = ms => new Promise(res=>setTimeout(res,ms));
 const cardOf = n => CARD_DATA.has(norm(n)) ? CARD_DATA.get(norm(n)) : CARD_DATA.get(norm(n.split("/")[0]));
 const known = n => CARD_DATA.has(norm(n)) || CARD_DATA.has(norm(n.split("/")[0]));
@@ -358,6 +495,7 @@ async function fetchCards(names){
     if (i) await sleep(100);
     const j = await scryfall("https://api.scryfall.com/cards/collection", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({identifiers:names.slice(i,i+75).map(name=>({name}))})});
     (j?.data||[]).forEach(storeCard);
+    showProgress();
   }
   // Names the exact lookup missed (typos, missing accents, front face only): try a fuzzy match for the first few.
   const missed = names.filter(n=>!known(n));
@@ -365,6 +503,7 @@ async function fetchCards(names){
     await sleep(100);
     const c = await scryfall("https://api.scryfall.com/cards/named?fuzzy=" + encodeURIComponent(n));
     if (c){ storeCard(c); CARD_DATA.set(norm(n), c); } else CARD_DATA.set(norm(n), null);
+    showProgress();
   }
   missed.forEach(n=>{ if (!known(n)) CARD_DATA.set(norm(n), null); });
 }
@@ -373,7 +512,7 @@ function ensureCards(names, retry){
   if (retry) lookupError = "";
   const missing = [...new Set(names.filter(n=>!known(n)))];
   if (!missing.length || lookupBusy || lookupError) return missing.length;
-  lookupBusy = true;
+  lookupBusy = true; lookupNames = missing;
   fetchCards(missing).catch(e=>{ lookupError = e.message || "network error"; }).finally(()=>{ lookupBusy = false; run(); });
   return missing.length;
 }
@@ -588,6 +727,59 @@ function powerLevel(r){
   return {power, band:bandOf(power), factors, stats, unresolved, avg, winTurn};
 }
 
+/* ---------- mana base ---------- */
+// Colors in the usual order, each with its basic land, the letter this site labels its gem with, and a spoken name.
+const COLORS = ["W","U","B","R","G","C"];
+const BASIC_OF = {W:"Plains", U:"Island", B:"Swamp", R:"Mountain", G:"Forest", C:"Wastes"};
+const CODE = {W:"P", U:"I", B:"S", R:"M", G:"F", C:"C"};
+const COLOR_NAME = {W:"white", U:"blue", B:"black", R:"red", G:"green", C:"colorless"};
+const gemSvg = c => `<svg class="mana" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><use href="#m-${c}"/></svg>`;
+const capTag = c => `<b class="cap cap-${c}" aria-hidden="true"><span>${CODE[c]}</span></b>`;
+const orList = a => a.length<2 ? a.join("") : a.slice(0,-1).join(", ") + " or " + a[a.length-1];
+function basicColor(name){
+  const n = name.toLowerCase().replace(/^snow-covered\s+/, "").trim();
+  return COLORS.find(c=>BASIC_OF[c].toLowerCase()===n) || null;
+}
+
+// Counts basic lands by type and, with Scryfall data, which lands make each color.
+// Fetch lands count toward the basic types they can find ("a basic land" = every basic type in the deck).
+function manaBase(cards, cmds, withData){
+  const cmdKeys = new Set(cmds.map(norm));
+  const zero = () => Object.fromEntries(COLORS.map(c=>[c,0]));
+  const basic = zero(), sources = zero(), nonbasic = [];
+  let total = 0, basicTotal = 0, mdfc = 0;
+  for (const c of cards){
+    if (cmdKeys.has(norm(c.name))) continue;
+    const bc = basicColor(c.name);
+    if (bc){ basic[bc] += c.qty; sources[bc] += c.qty; total += c.qty; basicTotal += c.qty; continue; }
+    if (!withData) continue;
+    const d = cardOf(c.name); if (!d) continue;
+    const f = classify(d);
+    if (!f.land && !f.mdfcLand) continue;
+    const produced = COLORS.filter(x=>(d.produced_mana||[]).includes(x));
+    const search = (f.text.match(/search your library for ([^.]*)/) || [])[1] || "";
+    const fetch = LANDWORDS.test(search) ? COLORS.filter(x=>x!=="C" && new RegExp(`\\b${BASIC_OF[x].toLowerCase()}s?\\b`).test(search)) : null;
+    const entry = {name:c.name, qty:c.qty, produced, colors:produced, fetch: fetch ? (fetch.length ? fetch : "basic") : null, mdfc:f.mdfcLand};
+    if (f.mdfcLand){ mdfc += c.qty; nonbasic.push(entry); continue; }   // a spell that can be played as a land: listed, not counted
+    total += c.qty;
+    produced.forEach(x=>sources[x] += c.qty);
+    nonbasic.push(entry);
+  }
+  nonbasic.forEach(e=>{
+    if (e.fetch){
+      const found = e.fetch==="basic" ? COLORS.filter(x=>x!=="C" && basic[x]>0) : e.fetch;
+      if (!e.mdfc) found.filter(x=>!e.produced.includes(x)).forEach(x=>sources[x] += e.qty);
+      e.colors = COLORS.filter(x=>e.produced.includes(x) || found.includes(x));
+    }
+    const names = e.colors.map(x=>`${COLOR_NAME[x]} (${BASIC_OF[x]})`);
+    e.label = !e.colors.length ? "Makes no mana" : e.fetch && !e.produced.length ? `Finds a land that makes ${orList(names)} mana` : `Makes ${orList(names)} mana`;
+    e.note = e.mdfc ? "spell or land" : e.fetch && !e.produced.length ? "fetches a land" : "";
+  });
+  nonbasic.sort((a,b)=>b.colors.length-a.colors.length || a.name.localeCompare(b.name));
+  const colorlessOnly = nonbasic.some(e=>!e.mdfc && e.produced.length===1 && e.produced[0]==="C");
+  return {basic, sources, nonbasic, total, basicTotal, nonbasicTotal: total-basicTotal, mdfc, withData, showC: basic.C>0 || colorlessOnly};
+}
+
 /* ---------- parsing ---------- */
 function parseDeck(text){
   const cards=[]; const commanders=[]; let section="";
@@ -656,7 +848,7 @@ function rate(text, cmdField, intent, retry){
   else { bump(2); checks.push({s:"warn",t:"Extra turns (not chained)",p:"Fine in Brackets 2–3 as long as they aren't looped. Bracket 1 decks should avoid them.",n:et.length,cards:et}); }
 
   // Combos
-  if (!combos.length) checks.push({s:"ok",t:"No known two-card combos",p:`None from the built-in list. <a href="https://commanderspellbook.com/find-my-combos/" target="_blank" rel="noopener">Check the full list on Commander Spellbook ↗</a>`,n:"0"});
+  if (!combos.length) checks.push({s:"ok",t:"No known two-card combos",p:`None from the built-in list. <a href="https://commanderspellbook.com/find-my-combos/" target="_blank" rel="noopener">Check the full list on Commander Spellbook<span class="ext" aria-hidden="true"> ↗</span><span class="sr-only"> (opens in a new tab)</span></a>`,n:"0"});
   else {
     const early = combos.some(c=>c.early);
     bump(early?4:3);
@@ -673,6 +865,7 @@ function rate(text, cmdField, intent, retry){
   const names = [...cards.map(c=>c.name), ...cmds];
   const pending = cards.length ? ensureCards(names, retry) : 0;
   const pw = cards.length && !pending ? powerLevel({cards, cmds, combos, gc}) : null;
+  const mana = manaBase(cards, cmds, !!pw);
 
   let rec_b = floor; const notes=[];
   if (pw){
@@ -712,87 +905,142 @@ function rate(text, cmdField, intent, retry){
   if (chaining) down.push("Trim extra-turn cards (and the ways to recast them) so turns can't be chained.");
   combos.forEach(c=>down.push(`Break up ${esc(c.a)} + ${esc(c.b)} by cutting one piece${c.withCmd?" (the other is your commander)":""}.`));
 
-  return {cards,cmds,total,gc,mld,et,rec,tut,fast,free,combos,checks,floor,rec_b,notes,down,power,cedhSignals,pw,pending};
+  return {cards,cmds,total,gc,mld,et,rec,tut,fast,free,combos,checks,floor,rec_b,notes,down,power,cedhSignals,pw,pending,mana};
 }
 
 /* ---------- render ---------- */
+const NEW_TAB = '<span class="ext" aria-hidden="true"> ↗</span><span class="sr-only"> (opens in a new tab)</span>';
+const extLink = (href, html, srExtra="") => `<a href="${esc(href)}" target="_blank" rel="noopener">${html}${srExtra?`<span class="sr-only"> ${esc(srExtra)}</span>`:""}${NEW_TAB}</a>`;
+
 function powerSection(r){
   if (!r.pw){
-    const msg = lookupError
-      ? `<p class="status err">Couldn't reach Scryfall (${esc(lookupError)}), so there's no power level. The bracket uses the rules and built-in card lists only. <button class="linkbtn" onclick="run(true)">Try again</button></p>`
-      : `<p class="status">Looking up ${r.pending} card${r.pending===1?"":"s"} on Scryfall to work out the power level…</p>`;
-    return `<h2>Power level</h2>${msg}`;
+    const msg = `<p class="status err">Couldn't reach Scryfall (${esc(lookupError || "no card data")}), so there's no power level or land breakdown by color. The bracket above uses the rules and built-in card lists only. <button type="button" class="linkbtn" onclick="run(true)">Try again</button></p>`;
+    return `<h3 class="sec">Power level</h3>${msg}`;
   }
   const p = r.pw, B = TIERS[p.band];
   const at = ((p.power-1)/9*100).toFixed(1);
-  const tile = f => `<div class="gauge"><div class="k">${f.label}<span class="w">× ${Math.round(f.weight*100)}%</span></div>
-    <div class="v">${f.v}<small> / 10</small></div>
-    <div class="bar"><i style="width:${f.score*10}%"></i></div>
-    <div class="d">${esc(f.d)}</div>
-    ${f.cards.length?`<details><summary>${f.cards.length} card${f.cards.length===1?"":"s"}</summary>${cardList([...new Set(f.cards)])}</details>`:""}</div>`;
-  const stat = s => `<div class="stat"><div class="k">${s.label}</div><div class="v">${s.v}${s.of?`<small> / ${s.of}</small>`:""}</div>${s.d?`<div class="d">${esc(s.d)}</div>`:""}</div>`;
-  return `<h2>Power level</h2>
+  const stat = s => `<div class="stat"><dt>${s.label}</dt><dd class="v">${s.v}${s.of?`<small> / ${s.of}</small>`:""}</dd>${s.d?`<dd class="d">${esc(s.d)}</dd>`:""}</div>`;
+  return `<h3 class="sec">Power level</h3>
     <div class="power" style="--ptier:${B.color}">
-      <div class="pnum">${p.power.toFixed(1)}<small> / 10</small></div>
+      <p class="pnum" style="margin:0">${p.power.toFixed(1)}<small> / 10</small></p>
       <p class="pline">Plays like <b style="color:${B.color}">Bracket ${p.band} · ${B.name}</b> by power alone.</p>
     </div>
-    <div class="pscale" role="img" aria-label="Power level ${p.power} of 10">
+    <div class="pscale" role="img" aria-label="Power level ${p.power.toFixed(1)} of 10, in the Bracket ${p.band} range">
       ${[1,2,3,4,5].map(b=>`<span class="${b===p.band?"on":""}" style="background:${TIERS[b].color}"></span>`).join("")}<i style="left:${at}%"></i>
     </div>
-    <div class="pticks"><span>1</span><span>4</span><span>6</span><span>7</span><span>8</span></div>
-    <div class="stats">${p.stats.map(stat).join("")}</div>
-    <h2>How the power level is built</h2>
+    <div class="pticks" aria-hidden="true"><span>1</span><span>4</span><span>6</span><span>7</span><span>8</span></div>
+    <dl class="stats">${p.stats.map(stat).join("")}</dl>`;
+}
+
+function factorsSection(r){
+  if (!r.pw) return "";
+  const p = r.pw;
+  const tile = f => `<div class="gauge"><h4 class="k">${f.label}<span class="w">× ${Math.round(f.weight*100)}%</span></h4>
+    <p class="v">${f.v}<small> / 10</small></p>
+    <div class="bar" aria-hidden="true"><i style="width:${f.score*10}%"></i></div>
+    <p class="d">${esc(f.d)}</p>
+    ${f.cards.length?`<details><summary>${f.cards.length} card${f.cards.length===1?"":"s"}<span class="sr-only"> counted for ${f.label}</span></summary>${cardList([...new Set(f.cards)])}</details>`:""}</div>`;
+  return `<h3 class="sec">How the power level is built</h3>
     <p class="hint formula">Power level = Mana Engine × 18% + Consistency × 18% + Win Pressure × 20% + Interaction × 14% + Resilience × 10% + Protection × 8% + Disruptive Pressure × 7% + Card Quality × 5% = <b>${p.power.toFixed(1)}</b></p>
     <div class="gauges factors" style="margin-top:10px">${p.factors.map(tile).join("")}</div>
     ${p.unresolved.length?`<p class="hint" style="margin-top:8px">Scryfall didn't recognize ${p.unresolved.map(esc).join(", ")}, so ${p.unresolved.length===1?"it's":"they're"} left out of the power level.</p>`:""}`;
 }
 
+// Basic land counts (Plains, Island, Swamp, Mountain, Forest) with each color's gem, plus the nonbasic lands and the colors they make.
+function manaSection(m){
+  if (!m.total && !m.mdfc) return `<h3 class="sec">Mana base</h3><p class="hint">No lands found in this list.</p>`;
+  const shown = COLORS.filter(c=>c!=="C" || m.showC);
+  const tile = c => `<li class="land${m.basic[c] ? "" : " zero"}">
+      <span class="gem">${gemSvg(c)}${capTag(c)}</span>
+      <span class="ln">${c==="C" ? "Wastes" : BASIC_OF[c]}</span>
+      <span class="lv">${m.basic[c]}<span class="sr-only"> basic</span></span>
+      ${m.withData ? `<span class="ls">${m.sources[c]} land${m.sources[c]===1?"":"s"} make${m.sources[c]===1?"s":""} ${COLOR_NAME[c]}</span>` : ""}
+    </li>`;
+  // One row per color combination, so lands that make the same colors share one row of gems.
+  const groups = [];
+  m.nonbasic.forEach(e=>{ const k = e.colors.join("") + "|" + e.note; let g = groups.find(x=>x.k===k); if (!g) groups.push(g = {k, colors:e.colors, label:e.label, note:e.note, lands:[]}); g.lands.push(e); });
+  const group = g => `<li class="lgroup"><span class="pips" role="img" aria-label="${esc(g.label)}">${g.colors.length ? g.colors.map(c=>`<span class="pip">${gemSvg(c)}${capTag(c)}</span>`).join("") : `<span class="nopip" aria-hidden="true">–</span>`}</span>
+      <span class="lnames">${g.lands.map(e=>`<span>${cardLink(e.name)}${e.qty>1?` ×${e.qty}`:""}</span>`).join("")}${g.note?`<span class="x">${g.note}</span>`:""}</span></li>`;
+  return `<h3 class="sec">Mana base</h3>
+    <p class="hint">${m.total} land${m.total===1?"":"s"}: ${m.basicTotal} basic, ${m.nonbasicTotal} nonbasic${m.mdfc?`, plus ${m.mdfc} spell${m.mdfc===1?"":"s"} that can be played as a land`:""}.</p>
+    <ul class="lands" aria-label="Basic lands by type">${shown.map(tile).join("")}</ul>
+    ${m.withData
+      ? (m.nonbasic.length ? `<h4 class="subsec">Nonbasic and mixed lands, by the colors they make</h4><ul class="lgroups">${groups.map(group).join("")}</ul>` : "")
+      : `<p class="hint" style="margin-top:8px">Which lands make each color needs card data from Scryfall.</p>`}`;
+}
+
+// Shown while cards are looked up, instead of a bracket that might change.
+function renderLoading(el, r){
+  const total = lookupNames.length || r.pending, done = lookupNames.length ? lookupNames.filter(known).length : 0;
+  el.style.removeProperty("--tier");
+  el.setAttribute("aria-busy", "true");
+  el.innerHTML = `<div class="loading">
+      <div class="spinner" aria-hidden="true"></div>
+      <p class="ltitle">Rating your deck, please wait…</p>
+      <p class="lsub" id="ltext">Looked up ${done} of ${total} cards on Scryfall</p>
+      <progress id="lprog" max="${total}" value="${done}" aria-label="Cards looked up"></progress>
+    </div>`;
+}
+function showProgress(){
+  const bar = document.getElementById("lprog"), txt = document.getElementById("ltext");
+  if (!bar || !lookupNames.length) return;
+  const done = lookupNames.filter(known).length;
+  bar.max = lookupNames.length; bar.value = done;
+  txt.textContent = `Looked up ${done} of ${lookupNames.length} cards on Scryfall`;
+}
+
 function render(r){
   const el = document.getElementById("result");
-  if (!r.cards.length){ el.innerHTML = `<p class="label">No deck yet</p><p>Paste a decklist or a deck link on the left, or load the example deck, then choose <b>Rate deck</b>.</p>`; el.style.removeProperty("--tier"); return; }
+  el.removeAttribute("aria-busy");
+  if (!r.cards.length){ el.innerHTML = `<p class="label">No deck yet</p><p>Paste a decklist or a deck link, or load the example deck, then choose <b>Rate deck</b>.</p>`; el.style.removeProperty("--tier"); return; }
+  if (r.pending && !lookupError){ renderLoading(el, r); return; }
   const T = TIERS[r.rec_b];
   el.style.setProperty("--tier", T.color);
-  const cmdLinks = r.cmds.map(c=>`${cardLink(c)} <a class="x" href="https://edhrec.com/commanders/${slug(c)}" target="_blank" rel="noopener">EDHREC ↗</a>`).join(" · ");
+  const cmdLinks = r.cmds.map(c=>`${cardLink(c)} <span class="x">${extLink("https://edhrec.com/commanders/"+slug(c), "EDHREC", "page for "+c)}</span>`).join(" · ");
   const deckUrl = document.getElementById("deckurl").value.trim();
-  const gauge = (k,list,max) => `<div class="gauge"><div class="k">${k}</div><div class="v">${list.length}</div><div class="bar"><i style="width:${Math.min(100,list.length/max*100)}%"></i></div>${cardList(list)}</div>`;
+  const gauge = (k,list,max) => `<div class="gauge"><h4 class="k">${k}</h4><p class="v">${list.length}</p><div class="bar" aria-hidden="true"><i style="width:${Math.min(100,list.length/max*100)}%"></i></div>${cardList(list)}</div>`;
 
   el.innerHTML = `
     <div class="verdict">
-      <div class="numeral" aria-hidden="true">${r.rec_b}</div>
+      <div class="seal" aria-hidden="true">${r.rec_b}</div>
       <div>
-        <p class="label">Recommended bracket</p>
+        <p class="label">Recommended bracket${r.pw ? "" : " (rules only)"}</p>
         <p class="vname">Bracket ${r.rec_b} · ${T.name}</p>
         <p class="vline">${T.line}</p>
       </div>
     </div>
-    <div class="ladder" role="img" aria-label="Bracket ${r.rec_b} of 5; rules floor is Bracket ${r.floor}">
+    <div class="ladder" role="img" aria-label="Bracket ${r.rec_b} of 5.${r.floor!==r.rec_b ? ` The rules alone require Bracket ${r.floor}.` : ""}">
       ${[1,2,3,4,5].map(b=>`<div class="rung${b===r.rec_b?" on":""}${b===r.floor&&r.floor!==r.rec_b?" floor":""}"><b>${b}</b>${TIERS[b].name}</div>`).join("")}
     </div>
+    ${r.floor!==r.rec_b ? `<p class="floornote" aria-hidden="true">Dashed: the rules floor, Bracket ${r.floor} (${TIERS[r.floor].name}), the lowest the rules allow.</p>` : ""}
     <div class="deckmeta">
-      <span>${r.cmds.length?"Commander: "+cmdLinks:"No commander found. Add one above."}</span>
+      <span>${r.cmds.length?"Commander: "+cmdLinks:"No commander found. Add one in the Commander box."}</span>
       <span>${r.total} cards${r.total!==100?` <span style="color:var(--warn)">(Commander decks are 100)</span>`:""}</span>
-      ${deckUrl?`<span><a href="${esc(deckUrl)}" target="_blank" rel="noopener">Open deck ↗</a></span>`:""}
+      ${deckUrl?`<span>${extLink(deckUrl, "Open deck")}</span>`:""}
     </div>
+    ${r.notes.length?`<h3 class="sec">Notes</h3><ul class="advice">${r.notes.map(n=>`<li>${n}</li>`).join("")}</ul>`:""}
     ${powerSection(r)}
-    ${r.notes.length?`<h2>Notes</h2><ul class="advice">${r.notes.map(n=>`<li>${n}</li>`).join("")}</ul>`:""}
-    <h2>Bracket rules</h2>
+    ${manaSection(r.mana)}
+    ${factorsSection(r)}
+    <h3 class="sec">Bracket rules</h3>
     <div class="checks">
       ${r.checks.map(c=>`<div class="check">
         <span class="pill ${c.s}">${c.s==="ok"?"Clear":c.s==="warn"?"Limited":"Bracket 4+"}</span>
-        <div><h3>${c.t}</h3><p>${c.p}</p>${c.cards?cardList(c.cards):""}
-          ${c.combos?`<div class="cards">${c.combos.map(k=>`<span>${cardLink(k.a)} + ${cardLink(k.b)} <span class="x">${esc(k.what)} · ${k.early?"early":"late"}</span> <a class="x" href="${spellbook(k.a,k.b)}" target="_blank" rel="noopener">Spellbook ↗</a></span>`).join("")}</div>`:""}
+        <div><h4>${c.t}</h4><p>${c.p}</p>${c.cards?cardList(c.cards):""}
+          ${c.combos?`<div class="cards">${c.combos.map(k=>`<span>${cardLink(k.a)} + ${cardLink(k.b)} <span class="x">${esc(k.what)} · ${k.early?"early":"late"}</span> <span class="x">${extLink(spellbook(k.a,k.b), "Spellbook", `combo page for ${k.a} and ${k.b}`)}</span></span>`).join("")}</div>`:""}
         </div>
         <span class="n">${c.n}</span></div>`).join("")}
     </div>
-    ${r.pw?"":`<h2>Power signals</h2>
+    ${r.pw?"":`<h3 class="sec">Power signals</h3>
     <div class="gauges">
       ${gauge("Tutors",r.tut,8)}
       ${gauge("Fast mana",r.fast,8)}
       ${gauge("Free / cheap interaction",r.free,8)}
     </div>
     <p class="hint" style="margin-top:8px">From built-in card lists. Sol Ring isn't counted as fast mana because nearly every deck runs it.</p>`}
-    ${r.down.length?`<h2>To play at a lower bracket</h2><ul class="advice">${r.down.map(d=>`<li>${d}</li>`).join("")}</ul>`:""}
+    ${r.down.length?`<h3 class="sec">To play at a lower bracket</h3><ul class="advice">${r.down.map(d=>`<li>${d}</li>`).join("")}</ul>`:""}
   `;
+  makeCollapsible(el, "h3.sec");
 }
 
 /* ---------- importing from deck sites ---------- */
@@ -872,7 +1120,7 @@ async function importFromLink(){
   if (!link || u===lastImported){ if (!link) importMsg(""); return; }
   lastImported = u;
   if (link.site==="Moxfield"){
-    importMsg(`Moxfield doesn't let other websites read its decks, so this page can't load the link by itself. <a href="${esc(u)}" target="_blank" rel="noopener">Open the deck ↗</a> and click your <b>Send to Rater</b> bookmark. ${setupHint}`);
+    importMsg(`Moxfield doesn't let other websites read its decks, so this page can't load the link by itself. <a href="${esc(u)}" target="_blank" rel="noopener">Open the deck<span class="ext" aria-hidden="true"> ↗</span><span class="sr-only"> (opens in a new tab)</span></a> and click your <b>Send to Rater</b> bookmark. ${setupHint}`);
     return;
   }
   importMsg("Importing from Archidekt…");
@@ -884,7 +1132,7 @@ async function importFromLink(){
   } catch(e){
     if ($("deckurl").value.trim()!==u) return;
     lastImported = "";
-    importMsg(`Couldn't load this Archidekt deck (${esc(e.message || "network error")}). <a href="${esc(u)}" target="_blank" rel="noopener">Open the deck ↗</a> and click your <b>Send to Rater</b> bookmark, or paste its text export below. ${setupHint}`, "err");
+    importMsg(`Couldn't load this Archidekt deck (${esc(e.message || "network error")}). <a href="${esc(u)}" target="_blank" rel="noopener">Open the deck<span class="ext" aria-hidden="true"> ↗</span><span class="sr-only"> (opens in a new tab)</span></a> and click your <b>Send to Rater</b> bookmark, or paste its text export below. ${setupHint}`, "err");
   }
 }
 function importFromHash(){
@@ -894,14 +1142,60 @@ function importFromHash(){
   history.replaceState(null, "", location.pathname + location.search);   // so a refresh doesn't import again
 }
 
+/* ---------- collapsible sections ---------- */
+// Turns each section heading into a disclosure button that shows or hides the content under it.
+// What the user collapsed is remembered across re-ratings (for this visit).
+const collapsed = new Set();
+function makeCollapsible(container, sel){
+  [...container.querySelectorAll(":scope > " + sel)].forEach(h=>{
+    const key = h.textContent.trim();
+    const body = document.createElement("div");
+    body.className = "sbody"; body.id = "sb-" + norm(key);
+    let n = h.nextElementSibling;
+    while (n && !n.matches(sel)){ const next = n.nextElementSibling; body.appendChild(n); n = next; }
+    h.after(body);
+    const open = !collapsed.has(key);
+    h.innerHTML = `<button type="button" class="tog" aria-expanded="${open}" aria-controls="${body.id}">${h.innerHTML}<span class="togword" aria-hidden="true">${open ? "Hide" : "Show"}</span><span class="chev" aria-hidden="true"></span></button>`;
+    body.hidden = !open;
+    h.querySelector(".tog").addEventListener("click", e=>{
+      const b = e.currentTarget, now = b.getAttribute("aria-expanded")!=="true";
+      b.setAttribute("aria-expanded", String(now)); body.hidden = !now;
+      b.querySelector(".togword").textContent = now ? "Hide" : "Show";
+      if (now) collapsed.delete(key); else collapsed.add(key);
+    });
+  });
+}
+
 /* ---------- wiring ---------- */
 const $ = id => document.getElementById(id);
 function intent(){ return document.querySelector('input[name="intent"]:checked').value; }
 // The list being rated. It only changes when the user chooses Rate deck (or loads the example),
 // so typing, pasting or importing never re-rates on its own.
 let rated = {deck:"", cmd:""};
-function run(retry){ render(rate(rated.deck, rated.cmd, intent(), retry===true)); markStale(); }
-function rateNow(){ rated = {deck:$("deck").value, cmd:$("commander").value}; importMsg(""); run(true); }
+function run(retry){
+  const r = rate(rated.deck, rated.cmd, intent(), retry===true);
+  const hadFocus = $("result").contains(document.activeElement);
+  render(r); markStale();
+  if (hadFocus && !$("result").contains(document.activeElement)) $("result-title").focus();   // the focused control was re-rendered away
+  if (!r.cards.length) return;
+  if (r.pending && !lookupError) announce("Rating your deck, please wait.");
+  else announce(`Rating ${r.pw ? "complete" : "done from the rules only, because card data couldn't be loaded"}. Bracket ${r.rec_b}, ${TIERS[r.rec_b].name}.${r.pw ? ` Power level ${r.pw.power.toFixed(1)} out of 10.` : ""}`);
+}
+function rateNow(){
+  rated = {deck:$("deck").value, cmd:$("commander").value}; importMsg(""); lastSaid = "";
+  run(true);
+  // On narrow screens the result sits below the form: bring it into view so the loading message is seen.
+  const panel = $("result-panel"), top = panel.getBoundingClientRect().top;
+  if (top > window.innerHeight * 0.75 || top < 0) panel.scrollIntoView({block:"start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"});
+}
+// Screen reader announcements go through one polite live region, outside the result panel that re-renders.
+let lastSaid = "";
+function announce(msg){
+  if (msg===lastSaid) return;
+  lastSaid = msg;
+  const a = $("announce"); a.textContent = "";
+  setTimeout(()=>{ a.textContent = msg; }, 60);
+}
 function updateCount(){
   const {cards} = parseDeck($("deck").value);
   const cmds = $("commander").value.split(/;| \+ |\n/).map(cleanCmd).filter(Boolean).filter(c=>!cards.some(x=>norm(x.name)===norm(c)));
@@ -941,7 +1235,7 @@ function showUrl(){
   const u = $("deckurl").value.trim(); const out=$("urlout");
   if (!/^https?:\/\//i.test(u)){ out.innerHTML=""; return; }
   const mox = u.match(/moxfield\.com\/decks\/([\w-]+)/i);
-  out.innerHTML = `<a href="${esc(u)}" target="_blank" rel="noopener">Open deck ↗</a>` + (mox?`<a href="https://moxfield.com/decks/${esc(mox[1])}/primer" target="_blank" rel="noopener">Primer ↗</a>`:"");
+  out.innerHTML = `<a href="${esc(u)}" target="_blank" rel="noopener">Open deck<span class="ext" aria-hidden="true"> ↗</span><span class="sr-only"> (opens in a new tab)</span></a>` + (mox?`<a href="https://moxfield.com/decks/${esc(mox[1])}/primer" target="_blank" rel="noopener">Primer<span class="ext" aria-hidden="true"> ↗</span><span class="sr-only"> (opens in a new tab)</span></a>`:"");
 }
 function loadSample(){ $("deck").value=SAMPLE; $("commander").value=""; $("deckurl").value=SAMPLE_URL; lastImported=SAMPLE_URL; $("intent-auto").checked=true; showUrl(); rateNow(); }
 
@@ -973,6 +1267,7 @@ $("commander").addEventListener("paste", e=>{
 (function init(){
   // Start fresh on every visit. Remove any draft saved by earlier versions of this page.
   try{ localStorage.removeItem("cbr-draft"); }catch(e){}
+  makeCollapsible(document.querySelector(".ref"), "h2.sec");
   run();
   importFromHash();
 })();

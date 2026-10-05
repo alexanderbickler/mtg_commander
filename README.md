@@ -1,6 +1,6 @@
 # Commander Bracket Rater
 
-Paste a Magic: The Gathering Commander decklist and get a recommended bracket (1–5) based on Wizards of the Coast's official Commander Bracket system.
+Paste a Magic: The Gathering Commander decklist or deck link and get a recommended bracket (1–5) based on Wizards of the Coast's published Commander Bracket rules, a 1–10 power level, and a breakdown of the mana base.
 
 **Live site:** [https://alexanderbickler.github.io/commander-bracket-rater/](https://alexanderbickler.github.io/mtg_commander/)
 
@@ -42,7 +42,18 @@ The power level maps to a bracket:
 
 The recommended bracket is the higher of the power level's bracket and the rules floor above, so the power level can raise a bracket but never lower it below what the rules require. You can also mark a deck as "theme first" (lets a Bracket 2 power level with no rule violations drop to Bracket 1) or "tuned for competitive pods" (turns Bracket 4 into Bracket 5).
 
-If Scryfall can't be reached, the page falls back to its built-in lists: tutors, fast mana and free interaction are shown as power signals and can move a deck up one bracket.
+While cards are being looked up, the verdict panel shows a loading spinner, **"Rating your deck, please wait…"** and a progress bar, so a provisional bracket never flashes up and then changes. If Scryfall can't be reached, the page falls back to its built-in lists: tutors, fast mana and free interaction are shown as power signals and can move a deck up one bracket, and the verdict is labeled "rules only".
+
+## Mana base
+
+The result counts the basic lands by type (Plains, Island, Swamp, Mountain, Forest, plus Wastes when the deck makes colorless mana), shows how many lands can make each color, and lists the nonbasic and mixed lands grouped by the colors they make. Fetch lands count toward the basic types they can find.
+
+Each color has its own gem, labeled with its basic land's letter: **P** Plains (white), **I** Island (blue), **S** Swamp (black), **M** Mountain (red), **F** Forest (green), **C** colorless. The gems are original drawings (sun, drop, skull, flame, tree, diamond in a hexagon), not Wizards' mana symbols, which the Fan Content Policy doesn't allow fan sites to use.
+
+## Design, accessibility and fan-content rules
+
+- **Theme:** an original parchment-and-gold look (midnight and gold in dark mode). It uses no Wizards logos, mana symbols, planeswalker, guild or set symbols, card frames, card backs, card art or the Beleren typeface. The required Fan Content notice is in the footer.
+- **Accessibility:** built to WCAG 2.2 AA. Every color pair meets contrast minimums in both themes, the page has landmarks, a skip link and a clean heading order, and screen readers hear "Rating your deck, please wait" and the result through a live region. Every result section except the recommended bracket can be collapsed with a keyboard-accessible button. Links that open new tabs say so, the spinner stops for people who prefer reduced motion, and the layout reflows at 320px wide with no sideways scrolling. Checked with axe-core in every state, in light, dark and high-contrast modes.
 
 ## How to use
 
@@ -57,7 +68,8 @@ Editing the fields after a rating shows a notice instead of re-rating; choose **
 ## Limits
 
 - Card draw, removal, tutor, ramp and finisher counts come from reading each card's rules text, so unusual wording can be missed or miscounted. Factor scoring and the bracket bands are estimates. Edit `POWER_WEIGHTS` and `powerLevel()` in `index.html` to tune them.
-- The power level needs an internet connection to reach Scryfall.
+- The power level and the land colors need an internet connection to reach Scryfall.
+- This is not legal advice. The theme and gems were designed to stay clear of Wizards' protected marks, but only a lawyer can assess legal risk.
 - Deck import relies on Moxfield's and Archidekt's own deck data, which they can change at any time. If an import stops working, paste the text export instead.
 - Mass land denial, extra-turn, combo and tutor detection uses built-in lists of well-known cards and may miss obscure ones. Use [Commander Spellbook's Find My Combos](https://commanderspellbook.com/find-my-combos/) for a full combo check.
 - Doesn't check the [banned list](https://magic.wizards.com/en/banned-restricted-list).
