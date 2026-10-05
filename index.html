@@ -64,7 +64,7 @@ a:hover{text-decoration-thickness:2px}
 /* masthead */
 .masthead{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:14px 24px;margin-bottom:22px}
 .gems{display:flex;gap:8px;margin-bottom:10px}
-.gem{display:inline-flex;flex-direction:column;align-items:center;gap:3px}
+.gem{display:inline-flex}
 .gems .mana{width:28px;height:28px}
 h1{font:700 clamp(28px,4.2vw,40px)/1.1 var(--display);letter-spacing:.03em;margin:0;text-wrap:balance}
 .sub{color:var(--muted);margin:8px 0 0;max-width:64ch}
@@ -192,11 +192,6 @@ button.primary:hover{background:var(--accent);filter:brightness(1.1)}
 .lnames{display:flex;flex-wrap:wrap;gap:0 14px;font-size:15px}
 .lnames a{display:inline-block;padding:3px 0}
 @media (max-width:620px){.lgroup{grid-template-columns:minmax(0,1fr)}}
-/* letter captions wear their gem's colors: fill, outline and glyph color, in a hex-ended tag */
-.cap{display:inline-block;padding:1.5px;line-height:0;background:var(--cs);clip-path:polygon(7px 0,calc(100% - 7px) 0,100% 50%,calc(100% - 7px) 100%,7px 100%,0 50%)}
-.cap span{display:block;min-width:28px;padding:3px 9px;background:var(--cf);color:var(--cg);font:700 12px/1 var(--display);text-align:center;clip-path:polygon(6px 0,calc(100% - 6px) 0,100% 50%,calc(100% - 6px) 100%,6px 100%,0 50%)}
-.cap-W{--cf:#F4EDC8;--cg:#3A3220;--cs:#6B5B33} .cap-U{--cf:#AACDEA;--cg:#0F2F4D;--cs:#2E5677} .cap-B{--cf:#BDB3AF;--cg:#1B1616;--cs:#4A403C}
-.cap-R{--cf:#EFA083;--cg:#4A1406;--cs:#7A3015} .cap-G{--cf:#9DCBA0;--cg:#133A1B;--cs:#2D5A33} .cap-C{--cf:#D0C9C4;--cg:#2A2623;--cs:#57504B}
 .pips{display:inline-flex;flex-wrap:wrap;gap:3px}
 .pips .mana{width:22px;height:22px}
 .nopip{display:inline-block;min-width:22px;text-align:center;color:var(--muted)}
@@ -273,7 +268,7 @@ code{font:14px var(--mono)}
 <div class="wrap">
   <header class="masthead">
     <div>
-      <div class="gems" aria-hidden="true"><span class="gem"><svg class="mana" viewBox="0 0 32 32" focusable="false"><use href="#m-W"/></svg><b class="cap cap-W"><span>P</span></b></span><span class="gem"><svg class="mana" viewBox="0 0 32 32" focusable="false"><use href="#m-U"/></svg><b class="cap cap-U"><span>I</span></b></span><span class="gem"><svg class="mana" viewBox="0 0 32 32" focusable="false"><use href="#m-B"/></svg><b class="cap cap-B"><span>S</span></b></span><span class="gem"><svg class="mana" viewBox="0 0 32 32" focusable="false"><use href="#m-R"/></svg><b class="cap cap-R"><span>M</span></b></span><span class="gem"><svg class="mana" viewBox="0 0 32 32" focusable="false"><use href="#m-G"/></svg><b class="cap cap-G"><span>F</span></b></span></div>
+      <div class="gems" aria-hidden="true"><span class="gem"><svg class="mana" viewBox="0 0 32 32" focusable="false"><use href="#m-W"/></svg></span><span class="gem"><svg class="mana" viewBox="0 0 32 32" focusable="false"><use href="#m-U"/></svg></span><span class="gem"><svg class="mana" viewBox="0 0 32 32" focusable="false"><use href="#m-B"/></svg></span><span class="gem"><svg class="mana" viewBox="0 0 32 32" focusable="false"><use href="#m-R"/></svg></span><span class="gem"><svg class="mana" viewBox="0 0 32 32" focusable="false"><use href="#m-G"/></svg></span></div>
       <h1>Commander Bracket Rater</h1>
       <p class="sub">Paste a decklist or a deck link and get a bracket (1–5) based on Wizards' published rules (Game Changers, mass land denial, chained extra turns and two-card combos), a 1–10 power level built from eight weighted factors, and a breakdown of the mana base.</p>
     </div>
