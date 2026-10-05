@@ -48,7 +48,7 @@ While cards are being looked up, the verdict panel shows a loading spinner, **"R
 
 The result counts the basic lands by type (Plains, Island, Swamp, Mountain, Forest, plus Wastes when the deck makes colorless mana), shows how many lands can make each color, and lists the nonbasic and mixed lands grouped by the colors they make. Fetch lands count toward the basic types they can find.
 
-Each color has its own gem: white (Plains), blue (Island), black (Swamp), red (Mountain), green (Forest) and colorless. The header labels them with their basic land's letter (**P**, **I**, **S**, **M**, **F**). The gems are original drawings (sun, drop, skull, flame, tree, diamond in a hexagon), not Wizards' mana symbols, which the Fan Content Policy doesn't allow fan sites to use.
+Each color has its own gem: white (Plains), blue (Island), black (Swamp), red (Mountain), green (Forest) and colorless. The gems are original drawings (sun, drop, skull, flame, tree, diamond in a hexagon), not Wizards' mana symbols, which the Fan Content Policy doesn't allow fan sites to use.
 
 ## Design, accessibility and fan-content rules
 
