@@ -57,11 +57,10 @@ Each color has its own gem: white (Plains), blue (Island), black (Swamp), red (M
 
 ## How to use
 
-There are three ways to get a deck in. None of them rates the deck until you choose **Rate deck**, so you can check the fields first.
+There are two ways to get a deck in. Neither rates the deck until you choose **Rate deck**, so you can check the fields first.
 
-1. **Paste an Archidekt link** into the deck link box. The commander and decklist fill in automatically.
-2. **Moxfield (one click):** Moxfield blocks other websites from reading its decks, so pasting a Moxfield link can't load it directly. Instead, open **One-click import** on the page and drag the **Send to Rater** button to your bookmarks bar. On any Moxfield or Archidekt deck page, click the bookmark: it reads the deck in your own browser and opens this page with the commander and decklist filled in.
-3. **Paste the text export** (Moxfield: **More** → **Export** → plain text; Archidekt and MTGO/Arena exports work too) into the decklist box. A full list replaces both fields: a Commander section goes into the Commander box and the rest into the decklist. Sideboard and maybeboard sections are left out.
+1. **Moxfield or Archidekt (one click):** both sites block other websites from reading their decks, so pasting a deck link can't load it directly; the page explains this and points to the bookmark. Instead, open **One-click import** on the page and drag the **Send to Rater** button to your bookmarks bar. On any Moxfield or Archidekt deck page, click the bookmark: it reads the deck in your own browser and opens this page with the commander and decklist filled in.
+2. **Paste the text export** (Moxfield: **More** → **Export** → plain text; Archidekt and MTGO/Arena exports work too) into the decklist box. A full list replaces both fields: a Commander section goes into the Commander box and the rest into the decklist. Sideboard and maybeboard sections are left out.
 
 Editing the fields after a rating shows a notice instead of re-rating; choose **Rate deck** again to update.
 
