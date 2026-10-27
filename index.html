@@ -288,7 +288,7 @@ code{font:14px var(--mono)}
         <input type="url" id="deckurl" placeholder="https://archidekt.com/decks/…" aria-describedby="deckurl-hint">
         <div class="urlout" id="urlout"></div>
         <p class="status" id="importmsg" role="status" hidden></p>
-        <p class="hint" id="deckurl-hint">Paste an Archidekt link to fill in the deck. Moxfield blocks other sites from reading its decks, so for Moxfield use the one-click bookmark below, or the deck's <b>More</b> → <b>Export</b> → plain text.</p>
+        <p class="hint" id="deckurl-hint">Moxfield and Archidekt block other sites from reading their decks, so a pasted link can't load the deck by itself. Use the one-click bookmark below, or paste the deck's text export (Moxfield: <b>More</b> → <b>Export</b> → plain text).</p>
         <details class="bm" id="bmsetup">
           <summary>One-click import from Moxfield or Archidekt</summary>
           <ol>
@@ -356,7 +356,7 @@ code{font:14px var(--mono)}
       <div><a href="https://magic.wizards.com/en/news/announcements/commander-brackets-beta-update-february-9-2026" target="_blank" rel="noopener">Official bracket update (Feb 2026)<span class="ext" aria-hidden="true"> ↗</span><span class="sr-only"> (opens in a new tab)</span></a><p>Wizards' latest changes, including Farewell and Biorhythm joining the Game Changers.</p></div>
       <div><a href="https://scryfall.com/search?q=is%3Agamechanger&order=name" target="_blank" rel="noopener">Game Changers list<span class="ext" aria-hidden="true"> ↗</span><span class="sr-only"> (opens in a new tab)</span></a><p>Scryfall keeps the live official list.</p></div>
       <div><a href="https://moxfield.com/" target="_blank" rel="noopener">Moxfield<span class="ext" aria-hidden="true"> ↗</span><span class="sr-only"> (opens in a new tab)</span></a><p>Build and export decks. Moxfield also shows its own bracket estimate on each deck.</p></div>
-      <div><a href="https://archidekt.com/" target="_blank" rel="noopener">Archidekt<span class="ext" aria-hidden="true"> ↗</span><span class="sr-only"> (opens in a new tab)</span></a><p>Another deck builder. Paste a deck link or its text export here.</p></div>
+      <div><a href="https://archidekt.com/" target="_blank" rel="noopener">Archidekt<span class="ext" aria-hidden="true"> ↗</span><span class="sr-only"> (opens in a new tab)</span></a><p>Another deck builder. Use the Send to Rater bookmark or paste its text export here.</p></div>
       <div><a href="https://commanderspellbook.com/find-my-combos/" target="_blank" rel="noopener">Commander Spellbook: Find My Combos<span class="ext" aria-hidden="true"> ↗</span><span class="sr-only"> (opens in a new tab)</span></a><p>Paste your full list to find every combo, including ones this page doesn't know about.</p></div>
       <div><a href="https://edhrec.com/" target="_blank" rel="noopener">EDHREC<span class="ext" aria-hidden="true"> ↗</span><span class="sr-only"> (opens in a new tab)</span></a><p>Common cards and strategies for your commander.</p></div>
       <div><a href="https://magic.wizards.com/en/banned-restricted-list" target="_blank" rel="noopener">Banned &amp; restricted list<span class="ext" aria-hidden="true"> ↗</span><span class="sr-only"> (opens in a new tab)</span></a><p>Check legality. This rater doesn't check bans.</p></div>
@@ -1106,25 +1106,13 @@ function applyImport(p){
 }
 
 let lastImported = "", importTimer;
-async function importFromLink(){
+// Neither Moxfield nor Archidekt lets other websites read its decks (no CORS permission), so a pasted link
+// can't be loaded from here. Point the user to the bookmark, which reads the deck on the site's own page.
+function importFromLink(){
   const u = $("deckurl").value.trim(), link = deckLink(u);
   if (!link || u===lastImported){ if (!link) importMsg(""); return; }
   lastImported = u;
-  if (link.site==="Moxfield"){
-    importMsg(`Moxfield doesn't let other websites read its decks, so this page can't load the link by itself. <a href="${esc(u)}" target="_blank" rel="noopener">Open the deck<span class="ext" aria-hidden="true"> ↗</span><span class="sr-only"> (opens in a new tab)</span></a> and click your <b>Send to Rater</b> bookmark. ${setupHint}`);
-    return;
-  }
-  importMsg("Importing from Archidekt…");
-  try {
-    const res = await fetch(`https://archidekt.com/api/decks/${encodeURIComponent(link.id)}/`, {headers:{Accept:"application/json"}});
-    if (!res.ok) throw new Error(res.status===404 ? "deck not found or private" : "Archidekt answered " + res.status);
-    if ($("deckurl").value.trim()!==u) return;   // the link changed while we waited
-    applyImport({...parseArchidekt(await res.json()), src:"Archidekt", url:u});
-  } catch(e){
-    if ($("deckurl").value.trim()!==u) return;
-    lastImported = "";
-    importMsg(`Couldn't load this Archidekt deck (${esc(e.message || "network error")}). <a href="${esc(u)}" target="_blank" rel="noopener">Open the deck<span class="ext" aria-hidden="true"> ↗</span><span class="sr-only"> (opens in a new tab)</span></a> and click your <b>Send to Rater</b> bookmark, or paste its text export below. ${setupHint}`, "err");
-  }
+  importMsg(`${link.site} doesn't let other websites read its decks, so this page can't load the link by itself. <a href="${esc(u)}" target="_blank" rel="noopener">Open the deck<span class="ext" aria-hidden="true"> ↗</span><span class="sr-only"> (opens in a new tab)</span></a> and click your <b>Send to Rater</b> bookmark, or paste the deck's text export below. ${setupHint}`);
 }
 function importFromHash(){
   if (!location.hash.startsWith("#import=")) return;
