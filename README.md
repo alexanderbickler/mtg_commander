@@ -70,7 +70,7 @@ Editing the fields after a rating shows a notice instead of re-rating; choose **
 `api/deck.js` is a Vercel serverless function. GitHub Pages keeps serving the site; Vercel only runs the importer.
 
 1. Sign in at [vercel.com](https://vercel.com) with GitHub and choose **Add New → Project**, then import this repository. Keep the defaults: **Framework Preset: Other**, no build command.
-2. Deploy. If Vercel names the project `mtg-commander`, the importer lives at `https://mtg-commander.vercel.app/api/deck` and the page already points there. If the name differs, change `DECK_PROXY` in `index.html` to your project's URL.
+2. Deploy. This project's importer lives at `https://mtgcommander.vercel.app/api/deck`, which is what `DECK_PROXY` in `index.html` points to. If you move it to another Vercel domain, update `DECK_PROXY` to match.
 3. Optional **Environment Variables** (Project → Settings):
    - `ALLOWED_ORIGINS`: comma-separated sites allowed to use the importer. Defaults to `https://alexanderbickler.github.io` plus localhost. The Vercel deployment's own domain is always allowed.
    - `MOXFIELD_USER_AGENT`: Moxfield blocks unknown servers. If you email Moxfield and they grant API access, they give you a user agent string; put it here and Moxfield links will load.
