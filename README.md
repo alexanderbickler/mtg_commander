@@ -57,12 +57,25 @@ Each color has its own gem: white (Plains), blue (Island), black (Swamp), red (M
 
 ## How to use
 
-There are two ways to get a deck in. Neither rates the deck until you choose **Rate deck**, so you can check the fields first.
+There are three ways to get a deck in. None of them rates the deck until you choose **Rate deck**, so you can check the fields first.
 
-1. **Moxfield or Archidekt (one click):** both sites block other websites from reading their decks, so pasting a deck link can't load it directly; the page explains this and points to the bookmark. Instead, open **One-click import** on the page and drag the **Send to Rater** button to your bookmarks bar. On any Moxfield or Archidekt deck page, click the bookmark: it reads the deck in your own browser and opens this page with the commander and decklist filled in.
-2. **Paste the text export** (Moxfield: **More** → **Export** → plain text; Archidekt and MTGO/Arena exports work too) into the decklist box. A full list replaces both fields: a Commander section goes into the Commander box and the rest into the decklist. Sideboard and maybeboard sections are left out.
+1. **Paste a Moxfield or Archidekt deck link** into the deck link box. The page asks a small server function (`api/deck.js`, hosted on Vercel) to fetch the deck, then fills in the commander and decklist. Browsers can't read these sites directly, so the server does it. Private decks can't be loaded, and Moxfield may refuse the server until it grants API access (see below).
+2. **Send to Rater bookmark (fallback):** drag it from **One-click import** to your bookmarks bar, then click it on any Moxfield or Archidekt deck page. It reads the deck in your own browser, so it works even when the server is refused.
+3. **Paste the text export** (Moxfield: **More** → **Export** → plain text; Archidekt and MTGO/Arena exports work too) into the decklist box. A full list replaces both fields: a Commander section goes into the Commander box and the rest into the decklist. Sideboard and maybeboard sections are left out.
 
 Editing the fields after a rating shows a notice instead of re-rating; choose **Rate deck** again to update.
+
+## Deck link importer (Vercel)
+
+`api/deck.js` is a Vercel serverless function. GitHub Pages keeps serving the site; Vercel only runs the importer.
+
+1. Sign in at [vercel.com](https://vercel.com) with GitHub and choose **Add New → Project**, then import this repository. Keep the defaults: **Framework Preset: Other**, no build command.
+2. Deploy. If Vercel names the project `mtg-commander`, the importer lives at `https://mtg-commander.vercel.app/api/deck` and the page already points there. If the name differs, change `DECK_PROXY` in `index.html` to your project's URL.
+3. Optional **Environment Variables** (Project → Settings):
+   - `ALLOWED_ORIGINS`: comma-separated sites allowed to use the importer. Defaults to `https://alexanderbickler.github.io` plus localhost. The Vercel deployment's own domain is always allowed.
+   - `MOXFIELD_USER_AGENT`: Moxfield blocks unknown servers. If you email Moxfield and they grant API access, they give you a user agent string; put it here and Moxfield links will load.
+
+The importer only fetches `moxfield.com` and `archidekt.com` deck links, never other URLs. It caches each deck for 5 minutes, and gives up after 8 seconds. Vercel's free Hobby plan covers this use.
 
 ## Limits
 
