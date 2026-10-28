@@ -29,7 +29,11 @@ function parseDeckUrl(raw){
   if (to) return {site: "TappedOut", id: to[1], url: `https://tappedout.net/mtg-decks/${to[1]}/`};
   // deckstats.net/decks/<owner>/<id>-<slug>/ or the short deckstats.net/decks/<id>-<slug>
   const ds = host === "deckstats.net" && u.pathname.match(/^\/decks\/(\d{1,12}(?:-[\w-]{0,120})?)(?:\/(\d{1,12}(?:-[\w-]{0,120})?))?\/?$/);
-  if (ds) { const path = "/decks/" + ds[1] + (ds[2] ? "/" + ds[2] : "") + "/"; return {site: "Deckstats", id: path, url: "https://deckstats.net" + path}; }
+  if (ds) {
+    const path = "/decks/" + ds[1] + (ds[2] ? "/" + ds[2] : "") + "/";
+    const owner = ds[2] && /^\d+$/.test(ds[1]) ? ds[1] : null, deckId = ds[2] ? ds[2].match(/^\d+/)[0] : null;
+    return {site: "Deckstats", id: path, url: "https://deckstats.net" + path, owner, deckId};
+  }
   // mtggoldfish.com/deck/<id> or /archetype/<slug> (an archetype's most recent list)
   const gf = host === "mtggoldfish.com" && u.pathname.match(/^\/(deck|archetype)\/([a-z0-9-]{1,120})\/?$/i);
   if (gf && (gf[1] !== "deck" || /^\d+$/.test(gf[2]))) return {site: "MTGGoldfish", kind: gf[1], id: gf[2], url: `https://www.mtggoldfish.com/${gf[1]}/${gf[2]}`};
@@ -101,14 +105,21 @@ function fromMoxfield(d){
   };
 }
 
-class FetchError extends Error { constructor(status, code, message){ super(message); this.status = status; this.code = code; } }
+class FetchError extends Error { constructor(status, code, message, detail){ super(message); this.status = status; this.code = code; this.detail = detail; } }
+
+// A refusal from the deck site: say which status it sent and whether bot protection (e.g. Cloudflare) answered.
+function refused(res){
+  const h = n => (res.headers && typeof res.headers.get === "function" && res.headers.get(n)) || "";
+  const bot = !!h("cf-mitigated") || /cloudflare|ddos-guard|sucuri/i.test(h("server"));
+  return new FetchError(502, "blocked", "The deck site refused the request.", `HTTP ${res.status}${bot ? ", bot protection" : ""}`);
+}
 
 async function getJson(url, headers){
   const ctrl = new AbortController(), timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
   try {
     const res = await fetch(url, {headers: {Accept: "application/json", ...headers}, signal: ctrl.signal, redirect: "follow"});
     if (res.status === 404) throw new FetchError(404, "not_found", "Deck not found, or it's private.");
-    if (res.status === 401 || res.status === 403) throw new FetchError(502, "blocked", "The deck site refused the request.");
+    if (res.status === 401 || res.status === 403) throw refused(res);
     if (!res.ok) throw new FetchError(502, "upstream", `The deck site answered ${res.status}.`);
     return await res.json();
   } catch (e) {
@@ -122,7 +133,7 @@ async function getText(url){
   try {
     const res = await fetch(url, {headers: {Accept: "text/plain, text/html;q=0.9, */*;q=0.5", "User-Agent": UA}, signal: ctrl.signal, redirect: "follow"});
     if (res.status === 404) throw new FetchError(404, "not_found", "Deck not found, or it's private.");
-    if (res.status === 401 || res.status === 403 || res.status === 429 || res.status === 503) throw new FetchError(502, "blocked", "The deck site refused the request.");
+    if (res.status === 401 || res.status === 403 || res.status === 429 || res.status === 503) throw refused(res);
     if (!res.ok) throw new FetchError(502, "upstream", `The deck site answered ${res.status}.`);
     const text = await res.text();
     return text.length > MAX_BYTES ? text.slice(0, MAX_BYTES) : text;
@@ -136,15 +147,20 @@ async function getText(url){
 async function firstList(urls){
   let last;
   for (const url of urls){
-    try { const t = await getText(url); if (looksLikeList(t)) return t; last = new FetchError(502, "unreadable", "The deck site didn't return a decklist."); }
-    catch (e) { if (e.code === "not_found") throw e; last = e; }
+    try { const t = await getText(url); if (looksLikeList(t)) return t; if (!last || last.code !== "blocked") last = new FetchError(502, "unreadable", "The deck site didn't return a decklist."); }
+    catch (e) { if (e.code === "not_found") throw e; if (!last || last.code !== "blocked") last = e; }
   }
   throw last;
 }
 
 async function loadTextSite(link){
   if (link.site === "TappedOut") return fromText(await firstList([link.url + "?fmt=txt", link.url + "?fmt=dec"]));
-  if (link.site === "Deckstats") return fromText(await firstList([link.url + "?export_txt=1&include_comments=1", link.url + "?export_dec=1"]));
+  if (link.site === "Deckstats"){
+    // Deckstats' internal deck API, which its maintainer has said tools may use (unofficial; full-length links only),
+    // then the page's text exports.
+    const api = link.owner ? [`https://deckstats.net/api.php?action=get_deck&id_type=saved&owner_id=${link.owner}&id=${link.deckId}&response_type=list`] : [];
+    return fromText(await firstList([...api, link.url + "?export_txt=1&include_comments=1", link.url + "?export_dec=1"]));
+  }
   // MTGGoldfish: deck pages have a download link; archetype pages embed the current list in the page.
   if (link.kind === "deck") return fromText(await firstList([`https://www.mtggoldfish.com/deck/download/${link.id}`]));
   const html = await getText(link.url);
@@ -210,7 +226,7 @@ async function handler(req, res){
     res.setHeader("Cache-Control", "public, s-maxage=300, stale-while-revalidate=600");   // repeat pastes of the same deck don't hit the deck site
     return send(200, {src: link.site, url: link.url, ...deck});
   } catch (e) {
-    return send(e.status || 500, {error: e.code || "error", message: e.message || "Something went wrong."});
+    return send(e.status || 500, {error: e.code || "error", message: e.message || "Something went wrong.", ...(e.detail ? {detail: e.detail} : {})});
   }
 }
 

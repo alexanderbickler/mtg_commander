@@ -288,12 +288,12 @@ code{font:14px var(--mono)}
         <input type="url" id="deckurl" placeholder="https://archidekt.com/decks/…" aria-describedby="deckurl-hint">
         <div class="urlout" id="urlout"></div>
         <p class="status" id="importmsg" role="status" hidden></p>
-        <p class="hint" id="deckurl-hint">Paste a deck link from Moxfield, Archidekt, TappedOut, Deckstats or MTGGoldfish (deck or archetype page) to fill in the deck. If a link won't load, use the one-click bookmark below (Moxfield and Archidekt) or paste the deck's text export.</p>
+        <p class="hint" id="deckurl-hint">Paste a deck link from Moxfield, Archidekt, TappedOut, Deckstats or MTGGoldfish (deck or archetype page) to fill in the deck. If a link won't load, use the one-click bookmark below (Moxfield, Archidekt, TappedOut, Deckstats) or paste the deck's text export.</p>
         <details class="bm" id="bmsetup">
-          <summary>One-click import from Moxfield or Archidekt</summary>
+          <summary>One-click import from Moxfield, Archidekt, TappedOut or Deckstats</summary>
           <ol>
             <li>Drag this button to your browser's bookmarks bar: <a class="bmbtn" id="bookmarklet" href="#">Send to Rater</a></li>
-            <li>Open any deck on Moxfield or Archidekt and click the bookmark.</li>
+            <li>Open any deck on Moxfield, Archidekt, TappedOut or Deckstats and click the bookmark.</li>
             <li>This page opens with the commander and decklist filled in. Choose <b>Rate deck</b>.</li>
           </ol>
           <p class="hint">Can't drag, or on a phone or tablet? <button class="linkbtn" id="copybm" type="button">Copy the bookmark code</button> and save it as a bookmark's address. The bookmark only reads the deck you're viewing and sends it to this page.</p>
@@ -787,7 +787,7 @@ function parseDeck(text){
     if (skip.test(section)) continue;
     const m = l.match(/^(\d+)\s*x?\s+(.+)$/i);
     const qty = m ? parseInt(m[1],10) : 1;
-    const isCmd = /\*cmdr\*/i.test(l) || /\[[^\]]*commander[^\]]*\]/i.test(l) || section.startsWith("commander");
+    const isCmd = /\*cmdr\*/i.test(l) || /#\s*!commander\b/i.test(l) || /\[[^\]]*commander[^\]]*\]/i.test(l) || section.startsWith("commander");
     const name = cleanName(m ? m[2] : l);
     if (!name) continue;
     if (isCmd) commanders.push(name);
@@ -1056,7 +1056,10 @@ function parseArchidekt(d){
 function sendToRater(rater, parseArchidekt){
   const href = location.href;
   const mox = href.match(/moxfield\.com\/decks\/([\w-]+)/i), arch = href.match(/archidekt\.com\/decks\/(\d+)/i);
-  if (!mox && !arch){ alert("Open a Moxfield or Archidekt deck page, then click Send to Rater again."); return; }
+  // TappedOut and Deckstats block servers, but let a signed-in or regular browser read their own text export.
+  const to = /tappedout\.net\/mtg-decks\/[a-z0-9-]+/i.test(href), ds = /deckstats\.net\/decks\/\d+/i.test(href);
+  if (!mox && !arch && !to && !ds){ alert("Open a deck page on Moxfield, Archidekt, TappedOut or Deckstats, then click Send to Rater again."); return; }
+  const src = mox ? "Moxfield" : arch ? "Archidekt" : to ? "TappedOut" : "Deckstats";
   const win = window.open("", "_blank");
   const get = url => fetch(url, {headers:{Accept:"application/json"}}).then(r=>{ if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); });
   (async()=>{
@@ -1069,21 +1072,29 @@ function sendToRater(rater, parseArchidekt){
       const list = b => Object.values((boards[b] && boards[b].cards) || {});
       deck = {name: d.name || "", commanders: list("commanders").map(c=>c.card.name),
               cards: [...list("mainboard"), ...list("companions")].map(c=>c.quantity + " " + c.card.name)};
-    } else deck = parseArchidekt(await get(location.origin + "/api/decks/" + arch[1] + "/"));
-    if (!deck.cards.length && !deck.commanders.length) throw new Error("no cards found");
-    const url = rater + "#import=" + encodeURIComponent(JSON.stringify({v:1, src: mox ? "Moxfield" : "Archidekt", url: href.split(/[?#]/)[0], ...deck}));
+    } else if (arch) deck = parseArchidekt(await get(location.origin + "/api/decks/" + arch[1] + "/"));
+    else {
+      const base = location.origin + location.pathname.replace(/\/?$/, "/");
+      const r = await fetch(base + (to ? "?fmt=txt" : "?export_txt=1&include_comments=1"));
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      const text = (await r.text()).slice(0, 20000);
+      if (/^\s*</.test(text) || !/^\s*\d/m.test(text)) throw new Error("the export wasn't a decklist");
+      deck = {name: "", text, commanders: [], cards: []};
+    }
+    if (!deck.text && !deck.cards.length && !deck.commanders.length) throw new Error("no cards found");
+    const url = rater + "#import=" + encodeURIComponent(JSON.stringify({v:1, src, url: href.split(/[?#]/)[0], ...deck}));
     if (win) win.location.href = url; else location.href = url;
   })().catch(e=>{ if (win) win.close(); alert("Send to Rater couldn't read this deck (" + (e && e.message || e) + "). Use the site's Export → plain text instead."); });
 }
 const RATER_URL = location.href.split("#")[0];
 const BOOKMARKLET = "javascript:" + encodeURIComponent(`(${sendToRater})(${JSON.stringify(RATER_URL)},${parseArchidekt})`);
 
-// Deck links the importer understands. Only Moxfield and Archidekt also work with the Send to Rater bookmark.
+// Deck links the importer understands, and whether the Send to Rater bookmark also works there.
 const DECK_SITES = [
   [/^https?:\/\/(?:www\.)?moxfield\.com\/decks\/[\w-]+/i, "Moxfield", true],
   [/^https?:\/\/(?:www\.)?archidekt\.com\/decks\/\d+/i, "Archidekt", true],
-  [/^https?:\/\/(?:www\.)?tappedout\.net\/mtg-decks\/[a-z0-9-]+/i, "TappedOut", false],
-  [/^https?:\/\/(?:www\.)?deckstats\.net\/decks\/\d+/i, "Deckstats", false],
+  [/^https?:\/\/(?:www\.)?tappedout\.net\/mtg-decks\/[a-z0-9-]+/i, "TappedOut", true],
+  [/^https?:\/\/(?:www\.)?deckstats\.net\/decks\/\d+/i, "Deckstats", true],
   [/^https?:\/\/(?:www\.)?mtggoldfish\.com\/(?:deck\/\d+|archetype\/[a-z0-9-]+)/i, "MTGGoldfish", false]
 ];
 const deckLink = u => { const hit = DECK_SITES.find(([re])=>re.test(String(u).trim())); return hit ? {site: hit[1], bookmark: hit[2]} : null; };
@@ -1093,8 +1104,15 @@ const setupHint = `<button class="linkbtn" onclick="document.getElementById('bms
 // Fill the fields from an imported deck. The data can come from a link anyone made, so only plain text goes into the inputs.
 function applyImport(p){
   const str = (x, max=200) => String(x ?? "").replace(/[\r\n]+/g," ").slice(0, max);
-  const commanders = (Array.isArray(p.commanders) ? p.commanders : []).slice(0, 4).map(x=>str(x)).filter(Boolean);
-  const cards = (Array.isArray(p.cards) ? p.cards : []).slice(0, 400).map(x=>str(x)).filter(Boolean);
+  let commanders = (Array.isArray(p.commanders) ? p.commanders : []).slice(0, 4).map(x=>str(x)).filter(Boolean);
+  let cards = (Array.isArray(p.cards) ? p.cards : []).slice(0, 400).map(x=>str(x)).filter(Boolean);
+  if (typeof p.text === "string" && !cards.length){
+    // A text export sent by the bookmark (TappedOut, Deckstats): keep card lines and section headings only.
+    const keep = String(p.text).slice(0, 20000).split(/\r?\n/).filter(l=>/^\s*\d/.test(l) || /^\s*(\/\/|#)?\s*(commanders?|companions?|sideboard|maybeboard|maybe|considering|deck|main|mainboard|tokens?)\b\s*:?\s*$/i.test(l)).join("\n");
+    const parsed = parseDeck(keep), cmdKeys = new Set(parsed.commanders.map(norm));
+    commanders = [...new Set(parsed.commanders)].slice(0, 4).map(x=>str(x));
+    cards = parsed.cards.filter(c=>!cmdKeys.has(norm(c.name))).slice(0, 400).map(c=>str(c.qty+" "+c.name));
+  }
   if (!commanders.length && !cards.length) throw new Error("the deck had no cards");
   $("commander").value = commanders.join(" + ");
   $("deck").value = cards.join("\n");
@@ -1128,14 +1146,14 @@ async function importFromLink(){
     const res = await fetch(DECK_PROXY + "?url=" + encodeURIComponent(u), {headers:{Accept:"application/json"}});
     const body = await res.json().catch(()=>({}));
     if ($("deckurl").value.trim()!==u) return;   // the link changed while we waited
-    if (!res.ok) throw Object.assign(new Error(body.message || `The importer answered ${res.status}.`), {code: body.error});
+    if (!res.ok) throw Object.assign(new Error(body.message || `The importer answered ${res.status}.`), {code: body.error, detail: body.detail});
     applyImport({...body, src: link.site, url: u});
   } catch(e){
     if ($("deckurl").value.trim()!==u) return;
     lastImported = "";
     const why = e.code==="moxfield_blocked" ? "Moxfield doesn't let this site read its decks yet."
       : e.code==="not_found" ? `${link.site} says this deck doesn't exist or is private.`
-      : e.code==="blocked" ? `${link.site} refused the importer's request.`
+      : e.code==="blocked" ? `${link.site} blocks automated requests, so the importer can't read this deck${e.detail ? ` (${e.detail})` : ""}.`
       : e.code==="unreadable" ? `Couldn't find a decklist at that ${link.site} link.`
       : !e.code && e.name==="TypeError" ? `The deck importer couldn't be reached, so this ${link.site} deck didn't load.`   // network failure or blocked by the browser
       : `Couldn't load this ${link.site} deck (${e.message || "network error"}).`;
@@ -1252,7 +1270,7 @@ $("clear").addEventListener("click", ()=>{ $("deck").value=""; $("commander").va
 document.querySelectorAll('input[name="intent"]').forEach(i=>i.addEventListener("change", run));
 $("deckurl").addEventListener("input", ()=>{ showUrl(); clearTimeout(importTimer); importTimer = setTimeout(importFromLink, 400); });
 $("bookmarklet").href = BOOKMARKLET;
-$("bookmarklet").addEventListener("click", e=>{ e.preventDefault(); importMsg("Drag the <b>Send to Rater</b> button to your bookmarks bar, then click the bookmark while you're on a Moxfield or Archidekt deck page."); });
+$("bookmarklet").addEventListener("click", e=>{ e.preventDefault(); importMsg("Drag the <b>Send to Rater</b> button to your bookmarks bar, then click the bookmark while you're on a Moxfield, Archidekt, TappedOut or Deckstats deck page."); });
 $("copybm").addEventListener("click", async ()=>{
   try { await navigator.clipboard.writeText(BOOKMARKLET); $("copybm").textContent = "Copied"; }
   catch(e){ prompt("Copy this, then save it as a bookmark's address:", BOOKMARKLET); }
