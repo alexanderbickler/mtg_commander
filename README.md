@@ -59,8 +59,8 @@ Each color has its own gem: white (Plains), blue (Island), black (Swamp), red (M
 
 There are three ways to get a deck in. None of them rates the deck until you choose **Rate deck**, so you can check the fields first.
 
-1. **Paste a Moxfield or Archidekt deck link** into the deck link box. The page asks a small server function (`api/deck.js`, hosted on Vercel) to fetch the deck, then fills in the commander and decklist. Browsers can't read these sites directly, so the server does it. Private decks can't be loaded, and Moxfield may refuse the server until it grants API access (see below).
-2. **Send to Rater bookmark (fallback):** drag it from **One-click import** to your bookmarks bar, then click it on any Moxfield or Archidekt deck page. It reads the deck in your own browser, so it works even when the server is refused.
+1. **Paste a deck link** from Moxfield, Archidekt, TappedOut, Deckstats or MTGGoldfish (a deck page or a Commander archetype page) into the deck link box. The page asks a small server function (`api/deck.js`, hosted on Vercel) to fetch the deck, then fills in the commander and decklist. Browsers can't read these sites directly, so the server does it. Private decks can't be loaded, and a site may refuse the server (Moxfield does until it grants API access, see below).
+2. **Send to Rater bookmark (fallback, Moxfield and Archidekt only):** drag it from **One-click import** to your bookmarks bar, then click it on any Moxfield or Archidekt deck page. It reads the deck in your own browser, so it works even when the server is refused.
 3. **Paste the text export** (Moxfield: **More** → **Export** → plain text; Archidekt and MTGO/Arena exports work too) into the decklist box. A full list replaces both fields: a Commander section goes into the Commander box and the rest into the decklist. Sideboard and maybeboard sections are left out.
 
 Editing the fields after a rating shows a notice instead of re-rating; choose **Rate deck** again to update.
@@ -75,7 +75,17 @@ Editing the fields after a rating shows a notice instead of re-rating; choose **
    - `ALLOWED_ORIGINS`: comma-separated sites allowed to use the importer. Defaults to `https://alexanderbickler.github.io` plus localhost. The Vercel deployment's own domain is always allowed.
    - `MOXFIELD_USER_AGENT`: Moxfield blocks unknown servers. If you email Moxfield and they grant API access, they give you a user agent string; put it here and Moxfield links will load.
 
-The importer only fetches `moxfield.com` and `archidekt.com` deck links, never other URLs. It caches each deck for 5 minutes, and gives up after 8 seconds. Vercel's free Hobby plan covers this use.
+How each site is read:
+
+| Site | Link | What the importer fetches |
+| --- | --- | --- |
+| Moxfield | `moxfield.com/decks/<id>` | Moxfield's deck API (v3, then v2) |
+| Archidekt | `archidekt.com/decks/<id>` | Archidekt's deck API |
+| TappedOut | `tappedout.net/mtg-decks/<slug>/` | The text export (`?fmt=txt`, then `?fmt=dec`); the commander comes from TappedOut's `*CMDR*` marker when present |
+| Deckstats | `deckstats.net/decks/<id>-<name>` | The text export (`?export_txt=1`, then `?export_dec=1`); the commander comes from the `# !Commander` flag |
+| MTGGoldfish | `mtggoldfish.com/deck/<id>` or `/archetype/commander-<name>` | The deck's download, or the decklist on the archetype page; the commander is matched from the archetype name |
+
+If a list doesn't mark its commander, the commander box stays empty so you can type it. The importer only fetches deck links on these five sites, never other URLs. It caches each deck for 5 minutes, and gives up after 8 seconds. Vercel's free Hobby plan covers this use.
 
 ## Limits
 
