@@ -1109,7 +1109,7 @@ let lastImported = "", importTimer;
 // Browsers can't read Moxfield or Archidekt decks from this page (no CORS permission), so pasted links go through
 // a small server function on Vercel (api/deck.js) that fetches the deck and returns its commander and cards.
 // If the page itself is served from Vercel, it uses that deployment's own /api/deck.
-const DECK_PROXY = /\.vercel\.app$/.test(location.hostname) ? "/api/deck" : "https://mtg-commander.vercel.app/api/deck";
+const DECK_PROXY = /\.vercel\.app$/.test(location.hostname) ? "/api/deck" : "https://mtgcommander.vercel.app/api/deck";
 async function importFromLink(){
   const u = $("deckurl").value.trim(), link = deckLink(u);
   if (!link || u===lastImported){ if (!link) importMsg(""); return; }
@@ -1127,6 +1127,7 @@ async function importFromLink(){
     lastImported = "";
     const why = e.code==="moxfield_blocked" ? "Moxfield doesn't let this site read its decks yet."
       : e.code==="not_found" ? `${link.site} says this deck doesn't exist or is private.`
+      : !e.code && e.name==="TypeError" ? `The deck importer couldn't be reached, so this ${link.site} deck didn't load.`   // network failure or blocked by the browser
       : `Couldn't load this ${link.site} deck (${e.message || "network error"}).`;
     importMsg(fallback(esc(why)), "err");
   }
