@@ -284,11 +284,11 @@ code{font:14px var(--mono)}
     <section class="panel" aria-labelledby="deck-title">
       <h2 class="ptitle" id="deck-title">Your deck</h2>
       <div class="field">
-        <label class="label" for="deckurl">Deck link (Moxfield, Archidekt)</label>
+        <label class="label" for="deckurl">Deck link</label>
         <input type="url" id="deckurl" placeholder="https://archidekt.com/decks/…" aria-describedby="deckurl-hint">
         <div class="urlout" id="urlout"></div>
         <p class="status" id="importmsg" role="status" hidden></p>
-        <p class="hint" id="deckurl-hint">Paste a Moxfield or Archidekt deck link to fill in the deck. If a link won't load (a private deck, or the site blocking the importer), use the one-click bookmark below or paste the deck's text export (Moxfield: <b>More</b> → <b>Export</b> → plain text).</p>
+        <p class="hint" id="deckurl-hint">Paste a deck link from Moxfield, Archidekt, TappedOut, Deckstats or MTGGoldfish (deck or archetype page) to fill in the deck. If a link won't load, use the one-click bookmark below (Moxfield and Archidekt) or paste the deck's text export.</p>
         <details class="bm" id="bmsetup">
           <summary>One-click import from Moxfield or Archidekt</summary>
           <ol>
@@ -1078,10 +1078,15 @@ function sendToRater(rater, parseArchidekt){
 const RATER_URL = location.href.split("#")[0];
 const BOOKMARKLET = "javascript:" + encodeURIComponent(`(${sendToRater})(${JSON.stringify(RATER_URL)},${parseArchidekt})`);
 
-const deckLink = u => {
-  const m = String(u).match(/^https?:\/\/(?:www\.)?(moxfield|archidekt)\.com\/decks\/([\w-]+)/i);
-  return m ? {site: m[1].toLowerCase()==="moxfield" ? "Moxfield" : "Archidekt", id: m[2]} : null;
-};
+// Deck links the importer understands. Only Moxfield and Archidekt also work with the Send to Rater bookmark.
+const DECK_SITES = [
+  [/^https?:\/\/(?:www\.)?moxfield\.com\/decks\/[\w-]+/i, "Moxfield", true],
+  [/^https?:\/\/(?:www\.)?archidekt\.com\/decks\/\d+/i, "Archidekt", true],
+  [/^https?:\/\/(?:www\.)?tappedout\.net\/mtg-decks\/[a-z0-9-]+/i, "TappedOut", false],
+  [/^https?:\/\/(?:www\.)?deckstats\.net\/decks\/\d+/i, "Deckstats", false],
+  [/^https?:\/\/(?:www\.)?mtggoldfish\.com\/(?:deck\/\d+|archetype\/[a-z0-9-]+)/i, "MTGGoldfish", false]
+];
+const deckLink = u => { const hit = DECK_SITES.find(([re])=>re.test(String(u).trim())); return hit ? {site: hit[1], bookmark: hit[2]} : null; };
 function importMsg(html, kind){ const el = $("importmsg"); el.hidden = !html; el.className = "status" + (kind==="err" ? " err" : ""); el.innerHTML = html || ""; }
 const setupHint = `<button class="linkbtn" onclick="document.getElementById('bmsetup').open=true;document.getElementById('bmsetup').scrollIntoView({block:'nearest'})">Set up the Send to Rater bookmark</button>`;
 
@@ -1097,7 +1102,7 @@ function applyImport(p){
   lastImported = $("deckurl").value.trim();
   showUrl();
   const n = cards.reduce((a,l)=>a + (parseInt(l,10) || 1), 0) + commanders.length;
-  const src = p.src==="Archidekt" ? "Archidekt" : "Moxfield";
+  const src = ["Moxfield","Archidekt","TappedOut","Deckstats","MTGGoldfish"].includes(p.src) ? p.src : "Moxfield";
   importMsg(`Imported ${p.name ? `“${esc(str(p.name,120))}” ` : ""}from ${src}: ${n} cards${commanders.length ? `, commander ${commanders.map(esc).join(" + ")}` : ", no commander found"}. Check the fields, then choose <b>Rate deck</b>.`);
   $("count").textContent = n + " cards";
   const el = $("result"); el.style.removeProperty("--tier");
@@ -1114,7 +1119,10 @@ async function importFromLink(){
   const u = $("deckurl").value.trim(), link = deckLink(u);
   if (!link || u===lastImported){ if (!link) importMsg(""); return; }
   lastImported = u;
-  const fallback = why => `${why} <a href="${esc(u)}" target="_blank" rel="noopener">Open the deck<span class="ext" aria-hidden="true"> ↗</span><span class="sr-only"> (opens in a new tab)</span></a> and click your <b>Send to Rater</b> bookmark, or paste the deck's text export below. ${setupHint}`;
+  const open = `<a href="${esc(u)}" target="_blank" rel="noopener">Open the deck<span class="ext" aria-hidden="true"> ↗</span><span class="sr-only"> (opens in a new tab)</span></a>`;
+  const fallback = why => link.bookmark
+    ? `${why} ${open} and click your <b>Send to Rater</b> bookmark, or paste the deck's text export below. ${setupHint}`
+    : `${why} ${open}, use ${esc(link.site)}'s export or download option to copy the decklist as text, and paste it below.`;
   importMsg(`Importing from ${link.site}…`);
   try {
     const res = await fetch(DECK_PROXY + "?url=" + encodeURIComponent(u), {headers:{Accept:"application/json"}});
@@ -1127,6 +1135,8 @@ async function importFromLink(){
     lastImported = "";
     const why = e.code==="moxfield_blocked" ? "Moxfield doesn't let this site read its decks yet."
       : e.code==="not_found" ? `${link.site} says this deck doesn't exist or is private.`
+      : e.code==="blocked" ? `${link.site} refused the importer's request.`
+      : e.code==="unreadable" ? `Couldn't find a decklist at that ${link.site} link.`
       : !e.code && e.name==="TypeError" ? `The deck importer couldn't be reached, so this ${link.site} deck didn't load.`   // network failure or blocked by the browser
       : `Couldn't load this ${link.site} deck (${e.message || "network error"}).`;
     importMsg(fallback(esc(why)), "err");
