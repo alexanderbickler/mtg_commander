@@ -62,14 +62,13 @@ a:hover{text-decoration-thickness:2px}
 #main:focus,#result-title:focus{outline:none}
 
 /* masthead */
-.masthead{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:14px 24px;margin-bottom:22px}
-.gems{display:flex;gap:8px;margin-bottom:10px}
+.masthead{display:flex;flex-direction:column;align-items:center;text-align:center;gap:0;margin-bottom:24px}
+.gems{display:flex;justify-content:center;gap:8px;margin-bottom:10px}
 .gem{display:inline-flex}
 .gems .mana{width:28px;height:28px}
 h1{font:700 clamp(28px,4.2vw,40px)/1.1 var(--display);letter-spacing:.03em;margin:0;text-wrap:balance}
-.sub{color:var(--muted);margin:8px 0 0;max-width:64ch}
-.toplinks{display:flex;flex-wrap:wrap;gap:4px 18px;font-size:15px}
-.toplinks a,.urlout a,.links a{display:inline-block;padding:3px 0}
+.sub{color:var(--muted);margin:8px auto 0;max-width:64ch;text-wrap:pretty}
+.urlout a,.links a{display:inline-block;padding:3px 0}
 
 /* panels: a double-ruled frame */
 .grid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:20px;align-items:start}
@@ -196,6 +195,15 @@ button.primary:hover{background:var(--accent);filter:brightness(1.1)}
 .pips .mana{width:22px;height:22px}
 .nopip{display:inline-block;min-width:22px;text-align:center;color:var(--muted)}
 
+/* cards by role */
+.cgrid{list-style:none;margin:6px 0 4px;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:12px 10px}
+.ctile{display:grid;gap:4px;min-width:0}
+.ctile a{display:block;border-radius:4.75% / 3.4%;line-height:0}
+.ctile img{display:block;width:100%;height:auto;aspect-ratio:488 / 680;border-radius:4.75% / 3.4%;background:var(--sunk);box-shadow:0 2px 6px -2px var(--shadow)}
+.ctile .noimg{display:grid;place-items:center;aspect-ratio:488 / 680;padding:8px;border:1px dashed var(--field);border-radius:8px;font:600 13px/1.3 var(--body);color:var(--ink);text-align:center;line-height:1.3}
+.cname{font-size:13px;color:var(--muted);line-height:1.3;overflow-wrap:anywhere}
+@media (max-width:520px){.cgrid{grid-template-columns:repeat(auto-fill,minmax(96px,1fr))}}
+
 /* loading */
 .loading{display:grid;justify-items:center;text-align:center;gap:10px;padding:44px 12px 36px}
 .spinner{width:68px;height:68px;border-radius:50%;
@@ -272,11 +280,6 @@ code{font:14px var(--mono)}
       <h1>Commander Bracket Rater</h1>
       <p class="sub">Paste a decklist or a deck link and get a bracket (1–5) based on Wizards' published rules (Game Changers, mass land denial, chained extra turns and two-card combos), a 1–10 power level built from eight weighted factors, and a breakdown of the mana base.</p>
     </div>
-    <nav class="toplinks" aria-label="Deck tools">
-      <a href="https://moxfield.com/" target="_blank" rel="noopener">Moxfield<span class="ext" aria-hidden="true"> ↗</span><span class="sr-only"> (opens in a new tab)</span></a>
-      <a href="https://scryfall.com/search?q=is%3Agamechanger&order=name" target="_blank" rel="noopener">Game Changers on Scryfall<span class="ext" aria-hidden="true"> ↗</span><span class="sr-only"> (opens in a new tab)</span></a>
-      <a href="https://commanderspellbook.com/find-my-combos/" target="_blank" rel="noopener">Commander Spellbook<span class="ext" aria-hidden="true"> ↗</span><span class="sr-only"> (opens in a new tab)</span></a>
-    </nav>
   </header>
 
   <main id="main" tabindex="-1">
@@ -288,7 +291,7 @@ code{font:14px var(--mono)}
         <input type="url" id="deckurl" placeholder="https://archidekt.com/decks/…" aria-describedby="deckurl-hint">
         <div class="urlout" id="urlout"></div>
         <p class="status" id="importmsg" role="status" hidden></p>
-        <p class="hint" id="deckurl-hint">Paste a deck link from Moxfield, Archidekt, TappedOut, Deckstats or MTGGoldfish (deck or archetype page) to fill in the deck. If a link won't load, use the one-click bookmark below (Moxfield, Archidekt, TappedOut, Deckstats) or paste the deck's text export.</p>
+        <p class="hint" id="deckurl-hint">Paste a deck link from Moxfield, Archidekt or MTGGoldfish (deck or archetype page) to fill in the deck. TappedOut and Deckstats block automated requests, so for those use the <b>One-click import</b> below. You can also paste any deck's text export into the decklist.</p>
         <details class="bm" id="bmsetup">
           <summary>One-click import from Moxfield, Archidekt, TappedOut or Deckstats</summary>
           <ol>
@@ -960,6 +963,39 @@ function manaSection(m){
       : `<p class="hint" style="margin-top:8px">Which lands make each color needs card data from Scryfall.</p>`}`;
 }
 
+// Card images grouped by what each card does. Each card appears once, in the first group it fits (in this order).
+const ROLES = [
+  ["Board Wipes", f=>f.wipe], ["Removal & Interaction", f=>f.removal || f.counter], ["Ramp", f=>f.ramp], ["Card Draw", f=>f.draw],
+  ["Tutors", f=>f.tutor], ["Protection", f=>f.protect], ["Recursion", f=>f.recursion], ["Win Conditions", f=>f.finisher],
+  ["Creatures", (f,d)=>/\bCreature\b/.test(d.card_faces?.[0]?.type_line ?? d.type_line ?? "")], ["Other Spells", ()=>true]
+];
+const imageOf = d => d && (d.image_uris || d.card_faces?.[0]?.image_uris) || null;
+function cardsSection(r){
+  if (!r.pw) return "";
+  const cmdKeys = new Set(r.cmds.map(norm));
+  const groups = new Map([["Commander", []], ...ROLES.map(([n])=>[n, []]), ["Lands", []]]);
+  r.cmds.forEach(n=>groups.get("Commander").push({name:n, qty:1, d:cardOf(n)}));
+  r.cards.filter(c=>!cmdKeys.has(norm(c.name))).forEach(c=>{
+    const d = cardOf(c.name);
+    if (!d){ groups.get("Other Spells").push({name:c.name, qty:c.qty, d:null}); return; }
+    const f = classify(d);
+    const role = f.land ? "Lands" : ROLES.find(([, test])=>test(f, d))[0];
+    groups.get(role).push({name:c.name, qty:c.qty, d});
+  });
+  // Scryfall's card images, shown whole (never cropped or covered) and loaded only when scrolled into view.
+  const tile = e => {
+    const img = imageOf(e.d), qty = e.qty>1 ? `${e.qty}× ` : "";
+    const pic = img ? `<img src="${esc(img.small || img.normal)}" srcset="${esc(img.small || img.normal)} 146w, ${esc(img.normal || img.small)} 488w" sizes="(max-width:520px) 30vw, 146px" width="146" height="204" loading="lazy" decoding="async" alt="${esc(e.name)}">`
+                    : `<span class="noimg">${esc(e.name)}</span>`;
+    return `<li class="ctile"><a href="${scry(e.name)}" target="_blank" rel="noopener">${pic}<span class="sr-only">${e.qty>1 ? `, ${e.qty} copies` : ""} (opens in a new tab)</span></a><span class="cname" aria-hidden="true">${esc(qty + e.name)}</span></li>`;
+  };
+  const body = [...groups].filter(([, list])=>list.length).map(([name, list])=>{
+    const n = list.reduce((a,e)=>a+e.qty, 0);
+    return `<h4 class="subsec">${name} <span class="x">(${n})</span></h4><ul class="cgrid">${list.map(tile).join("")}</ul>`;
+  }).join("");
+  return `<h3 class="sec">Cards by role</h3><p class="hint">Each card is shown once, in the first role it fits. Card images from <a href="https://scryfall.com" target="_blank" rel="noopener">Scryfall<span class="ext" aria-hidden="true"> ↗</span><span class="sr-only"> (opens in a new tab)</span></a>; select a card to view it there.</p>${body}`;
+}
+
 // Shown while cards are looked up, instead of a bracket that might change.
 function renderLoading(el, r){
   const total = lookupNames.length || r.pending, done = lookupNames.length ? lookupNames.filter(known).length : 0;
@@ -1030,6 +1066,7 @@ function render(r){
     </div>
     <p class="hint" style="margin-top:8px">From built-in card lists. Sol Ring isn't counted as fast mana because nearly every deck runs it.</p>`}
     ${r.down.length?`<h3 class="sec">To play at a lower bracket</h3><ul class="advice">${r.down.map(d=>`<li>${d}</li>`).join("")}</ul>`:""}
+    ${cardsSection(r)}
   `;
   makeCollapsible(el, "h3.sec");
 }

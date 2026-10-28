@@ -50,6 +50,10 @@ The result counts the basic lands by type (Plains, Island, Swamp, Mountain, Fore
 
 Each color has its own gem: white (Plains), blue (Island), black (Swamp), red (Mountain), green (Forest) and colorless. The gems are original drawings (sun, drop, skull, flame, tree, diamond in a hexagon), not Wizards' mana symbols, which the Fan Content Policy doesn't allow fan sites to use.
 
+## Cards by role
+
+After a rating, the **Cards by role** section shows the deck's card images grouped by what each card does: Commander, Board Wipes, Removal & Interaction, Ramp, Card Draw, Tutors, Protection, Recursion, Win Conditions, Creatures, Other Spells and Lands. Each card appears once, in the first group it fits, using the same rules-text reading as the power level. Images come from Scryfall, are shown whole (never cropped or covered, so the artist and copyright lines stay visible), load only as you scroll to them, and link to the card on Scryfall.
+
 ## Design, accessibility and fan-content rules
 
 - **Theme:** an original parchment-and-gold look (midnight and gold in dark mode). It uses no Wizards logos, mana symbols, planeswalker, guild or set symbols, card frames, card backs, card art or the Beleren typeface. The required Fan Content notice is in the footer.
